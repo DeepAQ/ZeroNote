@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'interceptor' => '\app\util\Interceptor',
+
     'db' => [
         'dsn' => 'sqlite:zeronote.sqlite3',
         'user' => '',

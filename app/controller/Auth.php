@@ -15,14 +15,14 @@ class Auth extends BLController
     {
         $vo = BLRequest::bodyJson();
         if (!isset($vo['email']) || !isset($vo['password'])) {
-            return $this->json(Response::error('请输入 Email 和密码'));
+            return $this->json(Response::error('Please type your E-mail and password'));
         }
         $user = User::query()->where('email', $vo['email'])->limit(1)->get();
         if (empty($user)) {
-            return $this->json(Response::error('用户不存在，请先注册'));
+            return $this->json(Response::error('This E-mail has not been registered'));
         }
         if ($user[0]->password != hash('sha256', $vo['password'])) {
-            return $this->json(Response::error('密码错误，请重试'));
+            return $this->json(Response::error('Incorrect password, please try again'));
         }
         return $this->json(Response::success([
             'nickname' => $user[0] -> nickname,
@@ -34,11 +34,11 @@ class Auth extends BLController
     {
         $vo = BLRequest::bodyJson();
         if (!isset($vo['email']) || !isset($vo['password'])) {
-            return $this->json(Response::error('请输入 Email 和密码'));
+            return $this->json(Response::error('Please type your E-mail and password'));
         }
         $id = User::insert([
             'email' => $vo['email'],
-            'password' => $vo['password'],
+            'password' => hash('sha256', $vo['password']),
             'nickname' => $vo['nickname']
         ]);
         if ($id > 0) {
@@ -46,7 +46,7 @@ class Auth extends BLController
                 'token' => AuthToken::sign($id)
             ]));
         } else {
-            return $this->json(Response::error('注册失败，请稍后重试'));
+            return $this->json(Response::error('System error, try again later'));
         }
     }
 }
