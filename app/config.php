@@ -14,8 +14,8 @@ return [
     'token' => [
         'provider' => '\BestLang\ext\token\JWT',
         'options' => [
-            'signer' => '\Lcobucci\JWT\Signer\Hmac\Sha512',
-            'key' => 'test'
+            'signer' => '\Lcobucci\JWT\Signer\Hmac\Sha256',
+            'key' => '2Pr{sr4$Z^UR=_(~laT6u[2:n*EbP)aG'
         ]
     ]
 ];
