@@ -1,0 +1,5 @@
+{
+    "require": {
+        "deepaq/bestlang": "dev-master"
+    }
+}
