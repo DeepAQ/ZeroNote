@@ -41,15 +41,20 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NamedModulesPlugin(), // HMR shows correct file names in console on update.
-    new webpack.NoEmitOnErrorsPlugin(),
-    // https://github.com/ampedandwired/html-webpack-plugin
-    new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: 'index.html',
-      inject: true
-    }),
+    new webpack.NoEmitOnErrorsPlugin()
   ]
 })
+
+for (let page of config.build.pages) {
+  devWebpackConfig.plugins.push(new HtmlWebpackPlugin({
+    filename: `${page}.html`,
+    template: 'index.html',
+    inject: true,
+    excludeChunks: config.build.pages.filter(item => {
+      return (item != page)
+    })
+  }))
+}
 
 module.exports = new Promise((resolve, reject) => {
   portfinder.basePort = process.env.PORT || config.dev.port
