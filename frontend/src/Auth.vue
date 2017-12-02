@@ -11,37 +11,92 @@
       :lineLinked="true"
       :lineOpacity="0.3"
       :linesDistance="150"
-      :moveSpeed="2"
+      :moveSpeed="1"
       :hoverEffect="false"
       :clickEffect="false"/>
     <el-card class="card">
-      <div class="title">ZeroNote</div>
+      <header>ZeroNote</header>
       <el-tabs value="login">
         <el-tab-pane label="Login" name="login">
-          <el-input v-model="email" placeholder="E-mail"></el-input>
-          <el-input v-model="password" placeholder="Password"></el-input>
-          <el-button type="primary">Login</el-button>
+          <el-input v-model="email" placeholder="E-mail" :disabled="loading"></el-input>
+          <el-input v-model="password" type="password" placeholder="Password" :disabled="loading"></el-input>
+          <el-button type="primary" :loading="loading" v-on:click="loginClick">Login</el-button>
         </el-tab-pane>
         <el-tab-pane label="Register" name="register">
-          <el-input v-model="email" placeholder="E-mail"></el-input>
-          <el-input v-model="password" placeholder="Password"></el-input>
-          <el-input v-model="password2" placeholder="Re-type password"></el-input>
-          <el-input v-model="nickname" placeholder="Nickname (Optional)"></el-input>
-          <el-button type="primary">Register</el-button>
+          <el-input v-model="email" placeholder="E-mail" :disabled="loading"></el-input>
+          <el-input v-model="password" type="password" placeholder="Password" :disabled="loading"></el-input>
+          <el-input v-model="password2" type="password" placeholder="Re-type password" :disabled="loading"></el-input>
+          <el-input v-model="nickname" placeholder="Nickname (Optional)" :disabled="loading"></el-input>
+          <el-button type="primary" :loading="loading" v-on:click="regClick">Register</el-button>
         </el-tab-pane>
       </el-tabs>
+      <footer>&copy; 2017 DeepAQ.</footer>
     </el-card>
   </div>
 </template>
 
 <script>
+import api from './utils/api'
 export default {
   data () {
     return {
       email: '',
       password: '',
       password2: '',
-      nickname: ''
+      nickname: '',
+      loading: false
+    }
+  },
+  methods: {
+    showError (msg) {
+      this.$message({
+        showClose: true,
+        type: 'error',
+        message: msg
+      })
+    },
+    loginClick () {
+      if (this.email == '' || this.password == '') {
+        this.showError(`Please type your E-mail and password`)
+        return
+      }
+      this.loading = true
+      api('auth/login', {
+        email: this.email,
+        password: this.password
+      }).then(data => {
+        localStorage.token = data.token
+        localStorage.nickname = data.nickname
+        window.location = '/'
+      }).catch(reason => {
+        this.showError(`Login failed: ${reason}`)
+      }).then(() => {
+        this.loading = false
+      })
+    },
+    regClick () {
+      if (this.email == '' || this.password == '') {
+        this.showError(`Please type your E-mail and password`)
+        return
+      }
+      if (this.password != this.password2) {
+        this.showError(`Passwords do not match, please try again`)
+        return
+      }
+      this.loading = true
+      api('auth/reg', {
+        email: this.email,
+        password: this.password,
+        nickname: this.nickname
+      }).then(data => {
+        localStorage.token = data.token
+        localStorage.nickname = this.nickname
+        window.location = '/'
+      }).catch(reason => {
+        this.showError(`Login failed: ${reason}`)
+      }).then(() => {
+        this.loading = false
+      })
     }
   }
 }
@@ -71,10 +126,15 @@ body {
     margin: 80px auto 0 auto;
     text-align: center;
 
-    .title {
+    header {
       font-size: 48px;
       color: #6e0f6d;
       font-weight: lighter;
+    }
+
+    footer {
+      margin-top: 20px;
+      font-size: 12px;
     }
 
     .el-tabs {
