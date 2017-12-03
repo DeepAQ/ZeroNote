@@ -14,9 +14,10 @@ class Notebook extends BLController
         if (empty(AuthToken::getId())) {
             return $this->json(Response::error('Not logged in or session expired'));
         }
-        return $this->json(Response::success(
+        return $this->json(Response::success(array_merge(
+            [['id' => 0, 'name' => 'Default notebook']],
             \app\model\Notebook::query()->fields(['id', 'name'])->where('userid', AuthToken::getId())->get()
-        ));
+        )));
     }
 
     public function create()
