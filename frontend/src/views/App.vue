@@ -26,7 +26,7 @@
         </el-tabs>
       </el-aside>
       <el-main>
-        main
+        <NoteEditor/>
       </el-main>
     </el-container>
   </el-container>
@@ -34,9 +34,10 @@
 
 <script>
 import NoteList from '../components/NoteList'
+import NoteEditor from '../components/NoteEditor'
 
 export default {
-  components: { NoteList },
+  components: { NoteList, NoteEditor },
   data () {
     return {
       nickname: localStorage.nickname,
@@ -68,6 +69,10 @@ html, body {
     .nav {
       flex: 1;
       padding-left: 20px;
+    }
+
+    .el-dropdown {
+      color: whitesmoke;
     }
   }
 
