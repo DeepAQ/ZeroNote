@@ -7,7 +7,6 @@ use app\util\AuthToken;
 use app\util\Response;
 use BestLang\core\controller\BLController;
 use BestLang\core\util\BLRequest;
-use BestLang\ext\token\BLToken;
 
 class Auth extends BLController
 {
@@ -25,7 +24,7 @@ class Auth extends BLController
             return $this->json(Response::error('Incorrect password, please try again'));
         }
         return $this->json(Response::success([
-            'nickname' => $user[0] -> nickname,
+            'nickname' => $user[0]->nickname,
             'token' => AuthToken::sign($user[0]->id)
         ]));
     }
@@ -35,6 +34,9 @@ class Auth extends BLController
         $vo = BLRequest::bodyJson();
         if (!isset($vo['email']) || !isset($vo['password'])) {
             return $this->json(Response::error('Please type your E-mail and password'));
+        }
+        if (User::query()->where('email', $vo['email'])->count() > 0) {
+            return $this->json(Response::error('This E-mail has already been registered'));
         }
         $id = User::insert([
             'email' => $vo['email'],
