@@ -1,11 +1,9 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
-import Auth from './Auth'
+import Auth from './views/Auth'
 import ElementUI from 'element-ui'
 import VueParticles from 'vue-particles'
-import './styles/base.less'
 import './styles/theme/index.css'
+import './styles/base.less'
 
 Vue.config.productionTip = false
 
