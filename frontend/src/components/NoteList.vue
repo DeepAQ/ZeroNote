@@ -5,14 +5,31 @@
         <el-button slot="append" icon="el-icon-plus" v-on:click="newNbClick"/>
       </NoteSearch>
     </div>
-    <el-menu v-loading="loading">
-      <el-submenu v-for="nb in notebooks" :key="nb.id" :index="nb.id">
-        <template slot="title">
-          <i class="el-icon-edit-outline"></i>
-          <span>{{nb.name}}</span>
-        </template>
-        <el-menu-item index="1"><i class="el-icon-document"></i> Note1</el-menu-item>
-        <el-menu-item index="2"><i class="el-icon-document"></i> Note2</el-menu-item>
+    <el-menu v-loading="loading" v-on:open="menuNbOpen">
+      <el-submenu v-for="nb in notebooks" :key="nb.id" :index="nb.id + ''">
+        <div slot="title" class="menu_item_nb">
+          <div>
+            <i class="el-icon-edit-outline"></i>
+            <span>{{nb.id == 0 ? 'Default notebook' : nb.name}}</span>
+          </div>
+          <div>
+            <el-tooltip content="New note" placement="bottom-start">
+              <i class="el-icon-plus" @click.stop="newNote(nb.id)"></i>
+            </el-tooltip>
+            <el-tooltip content="Delete notebook" placement="bottom-start">
+              <i class="el-icon-delete" v-if="nb.id > 0"></i>
+            </el-tooltip>
+          </div>
+        </div>
+        <div v-loading="note_loading[nb.id]" style="min-height: 40px;">
+          <el-menu-item v-for="nt in notes[nb.id]" :key="nt.id" :index="nt.id + ''">
+            <i class="el-icon-document"></i> {{(!nt.title || nt.title == '') ? 'Untitled' : nt.title}}
+          </el-menu-item>
+          <div class="nodata" style="line-height: 40px;" v-if="!note_loading[nb.id] && (!notes[nb.id] || notes[nb.id].length == 0)">
+            <i class="el-icon-document" style="font-size: 24px;"></i>
+            <span style="font-size: 14px;">No notes in notebook</span>
+          </div>
+        </div>
       </el-submenu>
     </el-menu>
     <div class="nodata" v-if="!loading && notebooks.length == 0">
@@ -31,7 +48,9 @@ export default {
   data () {
     return {
       loading: false,
-      notebooks: []
+      notebooks: [],
+      note_loading: {},
+      notes: {}
     }
   },
   methods: {
@@ -47,6 +66,22 @@ export default {
         })
       }).then(() => {
         this.loading = false
+      })
+    },
+    loadSubList (nbid) {
+      this.$set(this.note_loading, nbid, true)
+      api('note/get', {
+        nbid: nbid
+      }).then(data => {
+        this.$set(this.notes, nbid, data)
+      }).catch(reason => {
+        this.$message({
+          showClose: true,
+          type: 'error',
+          message: reason
+        })
+      }).then(() => {
+        this.$set(this.note_loading, nbid, false)
       })
     },
     newNbClick () {
@@ -73,6 +108,27 @@ export default {
           })
         })
       })
+    },
+    menuNbOpen (index, path) {
+      this.loadSubList(index)
+    },
+    newNote (nbid) {
+      api('note/create', {
+        nbid: nbid
+      }).then(data => {
+        this.$message({
+          showClose: true,
+          type: 'success',
+          message: 'Note created'
+        })
+        this.loadSubList(nbid)
+      }).catch(reason => {
+        this.$message({
+          showClose: true,
+          type: 'error',
+          message: reason
+        })
+      })
     }
   },
   mounted () {
@@ -88,6 +144,21 @@ export default {
 
   .note-search {
     flex: 1;
+  }
+}
+
+.menu_item_nb {
+  display: flex;
+  padding-right: 18px;
+
+  >:first-child {
+    flex: 1;
+  }
+
+  >:nth-child(2) i {
+    font-size: 16px;
+    width: 20px;
+    margin: 0;
   }
 }
 

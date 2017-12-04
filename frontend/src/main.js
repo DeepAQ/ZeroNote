@@ -8,6 +8,10 @@ import 'mavon-editor/dist/css/index.css'
 import './styles/theme/index.css'
 import './styles/base.less'
 
+if (!localStorage.token) {
+  window.location = '/auth.html'
+}
+
 Vue.config.productionTip = false
 
 Vue.use(ElementUI)

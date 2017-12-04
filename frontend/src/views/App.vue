@@ -4,7 +4,7 @@
       <div class="title">ZeroNote</div>
       <div class="nav"></div>
       <div class="user">
-        <el-dropdown>
+        <el-dropdown v-on:command="logoutClick">
           <span class="el-dropdown-link">
             {{nickname}} &lt;{{email}}&gt; <i class="el-icon-arrow-down el-icon--right"></i>
           </span>
@@ -42,6 +42,13 @@ export default {
     return {
       nickname: localStorage.nickname,
       email: localStorage.email
+    }
+  },
+  methods: {
+    logoutClick () {
+      console.log('logout')
+      delete localStorage['token']
+      window.location = '/auth.html'
     }
   }
 }
