@@ -12,10 +12,10 @@ class Notebook extends BLController
     public function all()
     {
         if (empty(AuthToken::getId())) {
-            return $this->json(Response::error('Not logged in or session expired'));
+            return $this->json(Response::notLoggedIn());
         }
         return $this->json(Response::success(array_merge(
-            [['id' => 0, 'name' => 'Default notebook']],
+            [['id' => 0, 'name' => '']],
             \app\model\Notebook::query()->fields(['id', 'name'])->where('userid', AuthToken::getId())->get()
         )));
     }
@@ -23,7 +23,7 @@ class Notebook extends BLController
     public function create()
     {
         if (empty(AuthToken::getId())) {
-            return $this->json(Response::error('Not logged in or session expired'));
+            return $this->json(Response::notLoggedIn());
         }
         $name = trim(BLRequest::bodyJson('name'));
         if (empty($name)) {
@@ -34,7 +34,7 @@ class Notebook extends BLController
             'userid' => AuthToken::getId()
         ]);
         if (empty($newId)) {
-            return $this->json(Response::error('Unknown error, retry later'));
+            return $this->json(Response::unknownError());
         }
         return $this->json(Response::success($newId));
     }

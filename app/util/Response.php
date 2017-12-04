@@ -20,4 +20,14 @@ class Response
             'data' => $data
         ];
     }
+
+    public static function unknownError()
+    {
+        return self::error('Unknown error, retry later');
+    }
+
+    public static function notLoggedIn()
+    {
+        return self::error('Not logged in or session expired');
+    }
 }
