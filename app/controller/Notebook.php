@@ -5,6 +5,7 @@ namespace app\controller;
 use app\util\AuthToken;
 use app\util\Response;
 use BestLang\core\controller\BLController;
+use BestLang\core\model\BLSql;
 use BestLang\core\util\BLRequest;
 
 class Notebook extends BLController
@@ -37,5 +38,22 @@ class Notebook extends BLController
             return $this->json(Response::unknownError());
         }
         return $this->json(Response::success($newId));
+    }
+
+    public function delete()
+    {
+        if (empty(AuthToken::getId())) {
+            return $this->json(Response::notLoggedIn());
+        }
+        $notebook = \app\model\Notebook::get(BLRequest::bodyJson('nbid'));
+        if (empty($notebook) || $notebook->userid != AuthToken::getId()) {
+            return $this->json(Response::error('Notebook does not exist'));
+        }
+        if ($notebook->remove()) {
+            BLSql::exec('UPDATE `note` SET `nbid`=0 WHERE `nbid`=?', [$notebook->id]);
+            return $this->json(Response::success($notebook->id));
+        } else {
+            return $this->json(Response::unknownError());
+        }
     }
 }

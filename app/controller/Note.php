@@ -21,7 +21,7 @@ class Note extends BLController
             ->fields(['id', 'title', 'updated'])
             ->where('nbid', $nbid)
             ->where('userid', AuthToken::getId())
-            ->orderBy('updated desc')
+            // ->orderBy('updated desc')
             ->get();
         return $this->json(Response::success($notes));
     }
