@@ -5,7 +5,7 @@
         <el-button slot="append" icon="el-icon-plus" v-on:click="newNbClick"/>
       </NoteSearch>
     </div>
-    <el-menu v-loading="loading" v-on:open="menuNbOpen" :router="true">
+    <el-menu ref="menu" v-loading="loading" v-on:open="menuNbOpen" :router="true">
       <el-submenu v-for="nb in notebooks" :key="nb.id" :index="nb.id + ''">
         <div slot="title" class="menu_item">
           <div>
@@ -14,7 +14,7 @@
           </div>
           <div>
             <el-tooltip content="Delete notebook" placement="bottom-start">
-              <i class="el-icon-delete" v-if="nb.id > 0"></i>
+              <i class="el-icon-delete" v-if="nb.id > 0" @click.stop="deleteNotebook(nb.id)"></i>
             </el-tooltip>
             <el-tooltip content="New note" placement="bottom-start">
               <i class="el-icon-plus" @click.stop="newNote(nb.id)"></i>
@@ -63,11 +63,34 @@ export default {
       notes: {}
     }
   },
+  computed: {
+    openedNbid () {
+      return this.$route.params.nbid
+    },
+    openedNtid() {
+      return this.$route.params.id
+    }
+  },
+  watch: {
+    openedNtid () {
+      this.routeChanged()
+    }
+  },
   methods: {
+    routeChanged() {
+      if (this.openedNbid >= 0 && this.$refs.menu.openedMenus.indexOf(this.openedNbid) < 0) {
+        this.$refs.menu.open(this.openedNbid)
+        this.loadSubList(this.openedNbid)
+      }
+      if (this.openedNtid > 0) {
+        this.$refs.menu.activeIndex = `/note/${this.openedNbid}/${this.openedNtid}`
+      }
+    },
     loadList () {
       this.loading = true
       api('notebook/all', {}).then(data => {
         this.notebooks = data
+        setTimeout(this.routeChanged, 0)
       }).catch(reason => {
         this.$message({
           showClose: true,
@@ -141,9 +164,37 @@ export default {
         })
       })
     },
+    deleteNotebook (nbid) {
+      this.$confirm('Notebook will be deleted, are you sure? All notes will be moved to default notebook.', 'Confirm delete', {
+        type: 'warning',
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel'
+      }).then(() => {
+        api('notebook/delete', {
+          nbid: nbid
+        }).then(data => {
+          this.$message({
+            showClose: true,
+            type: 'success',
+            message: 'Notebook deleted'
+          })
+          this.$router.push('/')
+          this.loadList()
+          this.loadSubList(0)
+        }).catch(reason => {
+          this.$message({
+            showClose: true,
+            type: 'error',
+            message: reason
+          })
+        })
+      })
+    },
     deleteNote (nbid, ntid) {
       this.$confirm('Deleted notes cannot be recovered, are you sure?', 'Confirm delete', {
-        type: 'warning'
+        type: 'warning',
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel'
       }).then(() => {
         api('note/delete', {
           id: ntid

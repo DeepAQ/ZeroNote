@@ -9,7 +9,7 @@
         </span>
       </el-input>
     </div>
-    <mavon-editor v-model="content" language="en"/>
+    <mavon-editor v-model="content" language="en" v-on:save="saveContent"/>
   </div>
 </template>
 
@@ -36,7 +36,7 @@ export default {
     },
     content () {
       if (!this.loading) {
-        this.saveContent()
+        this.saveDebounce()
       }
     }
   },
@@ -62,13 +62,7 @@ export default {
         api('note/updatetitle', {
           id: this.id,
           title: this.title
-        }).then(data => {
-          this.$message({
-            showClose: true,
-            type: 'success',
-            message: 'Title changed'
-          })
-        }).catch(reason => {
+        }).then(data => {}).catch(reason => {
           this.$message({
             showClose: true,
             type: 'error',
@@ -77,7 +71,7 @@ export default {
         }).then(() => this.saving = false)
       }
     },
-    saveContent: _.debounce(function () {
+    saveContent () {
       if (!this.saving) {
         this.saving = true
         api('note/updatecontent', {
@@ -91,6 +85,9 @@ export default {
           })
         }).then(() => this.saving = false)
       }
+    },
+    saveDebounce: _.debounce(function () {
+      this.saveContent()
     }, 2000)
   }
 }

@@ -86,5 +86,9 @@ html, body {
   .el-aside {
     background-color: #fafafa;
   }
+
+  .el-main {
+    padding: 10px;
+  }
 }
 </style>
