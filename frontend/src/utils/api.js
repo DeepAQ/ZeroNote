@@ -13,7 +13,7 @@ export default function (path, data) {
             responseType: 'json'
         }).then(resp => {
             if (resp.status == 200) {
-                if (resp.data.success > 0 && resp.data.data) {
+                if (resp.data.success > 0) {
                     resolve(resp.data.data)
                 } else {
                     reject(resp.data.msg)

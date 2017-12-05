@@ -26,7 +26,7 @@
         </el-tabs>
       </el-aside>
       <el-main>
-        <NoteEditor/>
+        <router-view/>
       </el-main>
     </el-container>
   </el-container>

@@ -1,0 +1,39 @@
+BEGIN TRANSACTION;
+
+DROP TABLE IF EXISTS "user";
+CREATE TABLE 'user' (
+    'id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    'email' TEXT NOT NULL,
+    'password' TEXT NOT NULL,
+    'nickname' TEXT,
+    'created' INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP TABLE IF EXISTS "notebook";
+CREATE TABLE 'notebook' (
+    'id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    'userid' INTEGER NOT NULL,
+    'name' TEXT NOT NULL,
+    'created' INTEGER DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP INDEX IF EXISTS "idx_userid";
+CREATE INDEX 'idx_userid' ON "notebook" ("userid");
+
+DROP TABLE IF EXISTS "note";
+CREATE TABLE 'note' (
+    'id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    'userid' INTEGER NOT NULL,
+    'nbid' INTEGER NOT NULL DEFAULT 0,
+    'title' TEXT,
+    'content' TEXT,
+    'public' BOOLEAN NOT NULL DEFAULT 0,
+    'upvote' INTEGER NOT NULL DEFAULT 0,
+    'created'  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    'updated'  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP INDEX IF EXISTS "idx_nbid";
+CREATE INDEX 'idx_nbid' ON "note" ("nbid");
+
+COMMIT;

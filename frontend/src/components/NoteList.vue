@@ -5,25 +5,35 @@
         <el-button slot="append" icon="el-icon-plus" v-on:click="newNbClick"/>
       </NoteSearch>
     </div>
-    <el-menu v-loading="loading" v-on:open="menuNbOpen">
+    <el-menu v-loading="loading" v-on:open="menuNbOpen" :router="true">
       <el-submenu v-for="nb in notebooks" :key="nb.id" :index="nb.id + ''">
-        <div slot="title" class="menu_item_nb">
+        <div slot="title" class="menu_item">
           <div>
             <i class="el-icon-edit-outline"></i>
             <span>{{nb.id == 0 ? 'Default notebook' : nb.name}}</span>
           </div>
           <div>
-            <el-tooltip content="New note" placement="bottom-start">
-              <i class="el-icon-plus" @click.stop="newNote(nb.id)"></i>
-            </el-tooltip>
             <el-tooltip content="Delete notebook" placement="bottom-start">
               <i class="el-icon-delete" v-if="nb.id > 0"></i>
+            </el-tooltip>
+            <el-tooltip content="New note" placement="bottom-start">
+              <i class="el-icon-plus" @click.stop="newNote(nb.id)"></i>
             </el-tooltip>
           </div>
         </div>
         <div v-loading="note_loading[nb.id]" style="min-height: 40px;">
-          <el-menu-item v-for="nt in notes[nb.id]" :key="nt.id" :index="nt.id + ''">
-            <i class="el-icon-document"></i> {{(!nt.title || nt.title == '') ? 'Untitled' : nt.title}}
+          <el-menu-item v-for="nt in notes[nb.id]" :key="nt.id" :index="'/note/' + nb.id + '/' + nt.id">
+            <div class="menu_item">
+              <div>
+                <i class="el-icon-document"></i>
+                <span>{{(!nt.title || nt.title == '') ? 'Untitled' : nt.title}}</span>
+              </div>
+              <div>
+                <el-tooltip content="Delete note" placement="bottom-start">
+                  <i class="el-icon-delete" @click.stop="deleteNote(nb.id, nt.id)"></i>
+                </el-tooltip>
+              </div>
+            </div>
           </el-menu-item>
           <div class="nodata" style="line-height: 40px;" v-if="!note_loading[nb.id] && (!notes[nb.id] || notes[nb.id].length == 0)">
             <i class="el-icon-document" style="font-size: 24px;"></i>
@@ -121,12 +131,36 @@ export default {
           type: 'success',
           message: 'Note created'
         })
+        this.$router.push(`/note/${nbid}/${data}`)
         this.loadSubList(nbid)
       }).catch(reason => {
         this.$message({
           showClose: true,
           type: 'error',
           message: reason
+        })
+      })
+    },
+    deleteNote (nbid, ntid) {
+      this.$confirm('Deleted notes cannot be recovered, are you sure?', 'Confirm delete', {
+        type: 'warning'
+      }).then(() => {
+        api('note/delete', {
+          id: ntid
+        }).then(data => {
+          this.$message({
+            showClose: true,
+            type: 'success',
+            message: 'Note deleted'
+          })
+          this.$router.push('/')
+          this.loadSubList(nbid)
+        }).catch(reason => {
+          this.$message({
+            showClose: true,
+            type: 'error',
+            message: reason
+          })
         })
       })
     }
@@ -147,7 +181,7 @@ export default {
   }
 }
 
-.menu_item_nb {
+.menu_item {
   display: flex;
   padding-right: 18px;
 
@@ -173,6 +207,10 @@ export default {
 .el-menu-item, .el-submenu>:first-child {
   height: 30px;
   line-height: 30px;
+}
+
+.el-menu-item {
+  padding-right: 0;
 }
 
 .nodata {
