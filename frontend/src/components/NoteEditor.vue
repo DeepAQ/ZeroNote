@@ -101,7 +101,7 @@ export default {
     },
     saveDebounce: _.debounce(function () {
       this.saveContent()
-    }, 2000),
+    }, 1000),
     uploadFile (filename, file) {
       let formData = new FormData();
       formData.append('filename', filename)

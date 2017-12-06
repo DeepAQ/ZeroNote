@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="search_bar">
-      <NoteSearch>
+      <NoteSearch v-on:nb-selected="nbSelected">
         <el-button slot="append" icon="el-icon-plus" v-on:click="newNbClick"/>
       </NoteSearch>
     </div>
@@ -64,26 +64,31 @@ export default {
     }
   },
   computed: {
-    openedNbid () {
+    routeNbid () {
       return this.$route.params.nbid
     },
-    openedNtid() {
+    routeNtid() {
       return this.$route.params.id
     }
   },
   watch: {
-    openedNtid () {
+    routeNtid () {
       this.routeChanged()
     }
   },
   methods: {
-    routeChanged() {
-      if (this.openedNbid >= 0 && this.$refs.menu.openedMenus.indexOf(this.openedNbid) < 0) {
-        this.$refs.menu.open(this.openedNbid)
-        this.loadSubList(this.openedNbid)
+    routeChanged () {
+      if (this.routeNbid >= 0) {
+        this.nbSelected(this.routeNbid)
       }
-      if (this.openedNtid > 0) {
-        this.$refs.menu.activeIndex = `/note/${this.openedNbid}/${this.openedNtid}`
+      if (this.routeNtid > 0) {
+        this.$refs.menu.activeIndex = `/note/${this.routeNbid}/${this.routeNtid}`
+      }
+    },
+    nbSelected (nbid) {
+      if (this.$refs.menu.openedMenus.indexOf(nbid) < 0) {
+        this.$refs.menu.open(nbid)
+        this.loadSubList(nbid)
       }
     },
     loadList () {
