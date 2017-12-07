@@ -124,8 +124,6 @@ export default {
     },
     newNbClick () {
       this.$prompt('Name your new notebook', 'New notebook', {
-        confirmButtonText: 'New',
-        cancelButtonText: 'Cancel',
         inputPattern: /[^\s]+/,
         inputErrorMessage: 'Please type a notebook name'
       }).then(({ value }) => {
@@ -171,9 +169,7 @@ export default {
     },
     deleteNotebook (nbid) {
       this.$confirm('Notebook will be deleted, are you sure? All notes will be moved to default notebook.', 'Confirm delete', {
-        type: 'warning',
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel'
+        type: 'warning'
       }).then(() => {
         api('notebook/delete', {
           nbid: nbid
@@ -197,9 +193,7 @@ export default {
     },
     deleteNote (nbid, ntid) {
       this.$confirm('Deleted notes cannot be recovered, are you sure?', 'Confirm delete', {
-        type: 'warning',
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel'
+        type: 'warning'
       }).then(() => {
         api('note/delete', {
           id: ntid
