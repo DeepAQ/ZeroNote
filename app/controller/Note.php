@@ -2,6 +2,7 @@
 
 namespace app\controller;
 
+use app\model\Sharing;
 use app\util\AuthToken;
 use app\util\Response;
 use BestLang\core\controller\BLController;
@@ -31,10 +32,18 @@ class Note extends BLController
             return $this->json(Response::notLoggedIn());
         }
         $note = \app\model\Note::get(BLRequest::bodyJson('id'));
-        if (empty($note) || $note->userid != AuthToken::getId()) {
+        $isShare = false;
+        if (empty($note)) {
             return $this->json(Response::error('Note does not exist'));
         }
-        return $this->json(Response::success($note));
+        if ($note->userid != AuthToken::getId()) {
+            if (Sharing::query()->where('noteid', $note->id)->where('touserid', AuthToken::getId())->count() > 0) {
+                $isShare = true;
+            } else {
+                return $this->json(Response::error('Note does not exist'));
+            }
+        }
+        return $this->json(Response::success(array_merge($note->data(), ['share' => $isShare])));
     }
 
     public function create() {

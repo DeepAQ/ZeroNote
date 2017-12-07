@@ -8,6 +8,13 @@ export default new Router({
   routes: [
     {
       path: '/note/:nbid/:id',
+      name: 'note',
+      component: NoteEditor,
+      props: true
+    },
+    {
+      path: '/share/:id',
+      name: 'share',
       component: NoteEditor,
       props: true
     }

@@ -44,7 +44,13 @@ class Share extends BLController
             return $this->json(Response::notLoggedIn());
         }
         $shares = Sharing::query()->where('touserid', AuthToken::getId())->get();
-        return $this->json(Response::success($shares));
+        $noteids = [];
+        foreach ($shares as $share) {
+            $noteids[] = $share->noteid;
+        }
+        $notes = \app\model\Note::query()->fields(['id', 'title'])
+            ->whereRaw('id IN (' . join(',', $noteids) . ')')->get();
+        return $this->json(Response::success($notes));
     }
 
     public function add()

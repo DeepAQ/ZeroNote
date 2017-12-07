@@ -16,12 +16,12 @@
     </el-header>
     <el-container>
       <el-aside>
-        <el-tabs value="notes">
-          <el-tab-pane label="Notes" name="notes">
+        <el-tabs :value="tab">
+          <el-tab-pane label="Notes" name="note">
             <NoteList/>
           </el-tab-pane>
-          <el-tab-pane label="Timeline" name="timeline">
-            Timeline
+          <el-tab-pane label="Shared" name="share">
+            <ShareList/>
           </el-tab-pane>
         </el-tabs>
       </el-aside>
@@ -35,16 +35,31 @@
 <script>
 import NoteList from '../components/NoteList'
 import NoteEditor from '../components/NoteEditor'
+import ShareList from '../components/ShareList'
 
 export default {
-  components: { NoteList, NoteEditor },
+  components: { NoteList, ShareList, NoteEditor },
   data () {
     return {
       nickname: localStorage.nickname,
-      email: localStorage.email
+      email: localStorage.email,
+      tab: 'note'
     }
   },
+  watch: {
+    $route () {
+      this.routeChanged()
+    }
+  },
+  mounted () {
+    this.routeChanged()
+  },
   methods: {
+    routeChanged () {
+      if (this.$route.name) {
+        this.tab = this.$route.name
+      }
+    },
     logoutClick () {
       console.log('logout')
       delete localStorage['token']

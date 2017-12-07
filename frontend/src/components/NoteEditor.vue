@@ -2,7 +2,7 @@
   <div id="editor" v-loading="loading">
     <div id="title_bar">
       <div>
-        <el-input v-model="title" placeholder="Untitled" v-on:blur="saveTitle">
+        <el-input v-model="title" placeholder="Untitled" v-on:blur="saveTitle" :disabled="readonly">
           <span slot="prepend">Title</span>
           <span slot="append">
             <span v-if="saving"><i class="el-icon-loading"></i> Syncing</span>
@@ -11,7 +11,7 @@
         </el-input>
       </div>
       <div>
-        <el-button type="primary" icon="el-icon-share" v-on:click="shareNote">Share</el-button>
+        <el-button v-if="!readonly" type="primary" icon="el-icon-share" v-on:click="shareNote">Share</el-button>
         <el-dropdown v-on:command="exportNote">
           <el-button type="primary" icon="el-icon-download">
             Export <i class="el-icon-arrow-down el-icon--right"></i>
@@ -23,7 +23,13 @@
         </el-dropdown>
       </div>
     </div>
-    <mavon-editor ref="editor" v-model="content" language="en" v-on:save="saveContent" v-on:imgAdd="uploadFile"/>
+    <mavon-editor
+      ref="editor"
+      v-model="content"
+      language="en"
+      :editable="!readonly"
+      v-on:save="saveContent"
+      v-on:imgAdd="uploadFile"/>
     <NoteShare ref="share"/>
   </div>
 </template>
@@ -35,11 +41,12 @@ import _ from 'lodash'
 
 export default {
   components: { NoteShare },
-  props: ['nbid', 'id'],
+  props: ['id'],
   data () {
     return {
       loading: false,
       saving: false,
+      readonly: false,
       title: '',
       content: ''
     }
@@ -65,6 +72,7 @@ export default {
       }).then(data => {
         this.title = data.title ? data.title : ''
         this.content = data.content ? data.content : ''
+        this.readonly = data.share
       }).catch(reason => {
         this.$message({
           showClose: true,
