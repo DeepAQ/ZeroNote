@@ -11,9 +11,10 @@
         </el-input>
       </div>
       <div>
+        <el-button type="primary" icon="el-icon-share" v-on:click="shareNote">Share</el-button>
         <el-dropdown v-on:command="exportNote">
-          <el-button type="primary">
-            <i class="el-icon-download"></i> Export <i class="el-icon-arrow-down el-icon--right"></i>
+          <el-button type="primary" icon="el-icon-download">
+            Export <i class="el-icon-arrow-down el-icon--right"></i>
           </el-button>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="markdown">Markdown</el-dropdown-item>
@@ -23,14 +24,17 @@
       </div>
     </div>
     <mavon-editor ref="editor" v-model="content" language="en" v-on:save="saveContent" v-on:imgAdd="uploadFile"/>
+    <NoteShare ref="share"/>
   </div>
 </template>
 
 <script>
+import NoteShare from './NoteShare'
 import api from '../utils/api'
 import _ from 'lodash'
 
 export default {
+  components: { NoteShare },
   props: ['nbid', 'id'],
   data () {
     return {
@@ -132,6 +136,9 @@ export default {
           w.close()
           break
       }
+    },
+    shareNote () {
+      this.$refs.share.showShare(this.id)
     }
   }
 }
@@ -152,7 +159,7 @@ export default {
     }
 
     >:last-child {
-      margin-left: 10px;
+      margin-left: 5px;
     }
   }
 

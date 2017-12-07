@@ -3,7 +3,7 @@
     <el-autocomplete
       v-model="kw"
       placeholder="Search ..."
-      :debounce="1000"
+      :debounce="500"
       prefix-icon="el-icon-search"
       :fetch-suggestions="doSearch"
       v-on:select="selectResult">
