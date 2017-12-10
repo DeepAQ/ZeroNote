@@ -39,12 +39,15 @@ import NoteShare from './NoteShare'
 import api from '../utils/api'
 import _ from 'lodash'
 
+let lastUpdate = 0
+
 export default {
   components: { NoteShare },
   props: ['id'],
   data () {
     return {
       loading: false,
+      polling: false,
       saving: false,
       readonly: false,
       title: '',
@@ -59,7 +62,7 @@ export default {
       this.loadNote()
     },
     content () {
-      if (!this.loading) {
+      if (!this.loading && !this.polling) {
         this.saveDebounce()
       }
     }
@@ -73,6 +76,8 @@ export default {
         this.title = data.title ? data.title : ''
         this.content = data.content ? data.content : ''
         this.readonly = data.share
+        lastUpdate = data.updated
+        setTimeout(this.pollChanges, 0)
       }).catch(reason => {
         this.$message({
           showClose: true,
@@ -147,6 +152,30 @@ export default {
     },
     shareNote () {
       this.$refs.share.showShare(this.id)
+    },
+    pollChanges () {
+      this.polling = true
+      api('note/poll', {
+        id: this.id,
+        lastUpdate: lastUpdate
+      }).then(data => {
+        if (data) {
+          const textArea = this.$el.querySelector('.auto-textarea-input')
+          let cursorPos = textArea.selectionStart
+          if (this.content.substr(0, cursorPos) != data.content.substr(0, cursorPos)) {
+            cursorPos += data.content.length - this.content.length
+          }
+          this.title = data.title ? data.title : ''
+          this.content = data.content ? data.content : ''
+          lastUpdate = data.updated
+          setTimeout(() => {
+            textArea.selectionStart = textArea.selectionEnd = cursorPos
+          }, 0)
+        }
+      }).catch(reason => {}).then(() => {
+        setTimeout(this.pollChanges, 1000)
+        this.polling = false
+      })
     }
   }
 }

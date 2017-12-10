@@ -10,7 +10,8 @@ use BestLang\core\util\BLRequest;
 
 class Note extends BLController
 {
-    public function get() {
+    public function get()
+    {
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
@@ -27,26 +28,61 @@ class Note extends BLController
         return $this->json(Response::success($notes));
     }
 
-    public function single() {
+    /**
+     * @param $note
+     * @return int, 0: no permission, 1: owner, 2: readonly shared, 3: editable shared
+     */
+    private function checkPermission($note)
+    {
+        if (empty($note)) {
+            return 0;
+        }
+        if ($note->userid != AuthToken::getId()) {
+            $sharing = Sharing::query()->where('noteid', $note->id)->where('touserid', AuthToken::getId())->get();
+            if (!empty($sharing)) {
+                return 2 + $sharing[0]->permission;
+            } else {
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+    public function single()
+    {
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
         $note = \app\model\Note::get(BLRequest::bodyJson('id'));
-        $isShare = false;
-        if (empty($note)) {
+        $permission = $this->checkPermission($note);
+        if ($permission > 0) {
+            return $this->json(Response::success(array_merge($note->data(), ['share' => $permission >= 2])));
+        } else {
             return $this->json(Response::error('Note does not exist'));
         }
-        if ($note->userid != AuthToken::getId()) {
-            if (Sharing::query()->where('noteid', $note->id)->where('touserid', AuthToken::getId())->count() > 0) {
-                $isShare = true;
-            } else {
-                return $this->json(Response::error('Note does not exist'));
-            }
-        }
-        return $this->json(Response::success(array_merge($note->data(), ['share' => $isShare])));
     }
 
-    public function create() {
+    public function poll()
+    {
+        if (empty(AuthToken::getId())) {
+            return $this->json(Response::notLoggedIn());
+        }
+        $lastUpdate = BLRequest::bodyJson('lastUpdate', 0);
+        $note = \app\model\Note::get(BLRequest::bodyJson('id'));
+        $permission = $this->checkPermission($note);
+        if ($permission > 0) {
+            if ($note->updated > $lastUpdate) {
+                return $this->json(Response::success($note));
+            } else {
+                return $this->json(Response::success(false));
+            }
+        } else {
+            return $this->json(Response::error('Note does not exist'));
+        }
+    }
+
+    public function create()
+    {
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
@@ -61,7 +97,8 @@ class Note extends BLController
         return $this->json(Response::success($newId));
     }
 
-    public function delete() {
+    public function delete()
+    {
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
@@ -77,7 +114,8 @@ class Note extends BLController
         }
     }
 
-    public function updatecontent() {
+    public function updatecontent()
+    {
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
@@ -94,7 +132,8 @@ class Note extends BLController
         }
     }
 
-    public function updatetitle() {
+    public function updatetitle()
+    {
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
