@@ -56,4 +56,21 @@ class Notebook extends BLController
             return $this->json(Response::unknownError());
         }
     }
+
+    public function rename()
+    {
+        if (empty(AuthToken::getId())) {
+            return $this->json(Response::notLoggedIn());
+        }
+        $notebook = \app\model\Notebook::get(BLRequest::bodyJson('nbid'));
+        if (empty($notebook) || $notebook->userid != AuthToken::getId()) {
+            return $this->json(Response::error('Notebook does not exist'));
+        }
+        $notebook->name = BLRequest::bodyJson('name');
+        if ($notebook->save() > 0) {
+            return $this->json(Response::success($notebook->id));
+        } else {
+            return $this->json(Response::unknownError());
+        }
+    }
 }

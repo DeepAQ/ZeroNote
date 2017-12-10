@@ -13,6 +13,9 @@
             <span>{{nb.id == 0 ? 'Default notebook' : nb.name}}</span>
           </div>
           <div>
+            <el-tooltip content="Rename notebook" placement="bottom-start">
+              <i class="el-icon-edit" v-if="nb.id > 0" @click.stop="renameNotebook(nb.id, nb.name)"></i>
+            </el-tooltip>
             <el-tooltip content="Delete notebook" placement="bottom-start">
               <i class="el-icon-delete" v-if="nb.id > 0" @click.stop="deleteNotebook(nb.id)"></i>
             </el-tooltip>
@@ -164,6 +167,31 @@ export default {
           showClose: true,
           type: 'error',
           message: reason
+        })
+      })
+    },
+    renameNotebook (nbid, oldName) {
+      this.$prompt('Name your notebook', 'Rename notebook', {
+        inputPattern: /[^\s]+/,
+        inputErrorMessage: 'Please type a notebook name',
+        inputValue: oldName
+      }).then(({ value }) => {
+        api('notebook/rename', {
+          nbid: nbid,
+          name: value
+        }).then(data => {
+          this.$message({
+            showClose: true,
+            type: 'success',
+            message: 'Notebook renamed'
+          })
+          this.loadList()
+        }).catch(reason => {
+          this.$message({
+            showClose: true,
+            type: 'error',
+            message: reason
+          })
         })
       })
     },

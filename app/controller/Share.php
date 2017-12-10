@@ -22,6 +22,9 @@ class Share extends BLController
             return $this->json(Response::error('note does not exist'));
         }
         $shares = Sharing::query()->where('noteid', $noteid)->get();
+        if (empty($shares)) {
+            return $this->json(Response::success([]));
+        }
         $userids = [];
         foreach ($shares as $share) {
             $userids[] = $share->touserid;
@@ -44,6 +47,9 @@ class Share extends BLController
             return $this->json(Response::notLoggedIn());
         }
         $shares = Sharing::query()->where('touserid', AuthToken::getId())->get();
+        if (empty($shares)) {
+            return $this->json(Response::success([]));
+        }
         $noteids = [];
         foreach ($shares as $share) {
             $noteids[] = $share->noteid;
