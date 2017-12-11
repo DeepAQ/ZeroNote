@@ -1,5 +1,6 @@
 {
     "require": {
-        "deepaq/bestlang": "dev-master"
+        "deepaq/bestlang": "dev-master",
+        "yetanotherape/diff-match-patch": "^1.0"
     }
 }

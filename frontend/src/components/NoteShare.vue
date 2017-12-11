@@ -1,28 +1,45 @@
 <template>
   <el-dialog title="Note sharing" :visible.sync="show">
-    <el-table :data="shared" v-loading="loading">
-      <el-table-column
-        label="User">
-        <template slot-scope="prop">
-          <span v-if="prop.row.touser">{{ prop.row.touser.nickname }} &lt;{{ prop.row.touser.email }}&gt;</span>
-          <span v-else>Unknown user ({{ prop.row.touserid }})</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="Actions"
-        width="100">
-        <template slot-scope="prop">
-          <el-button type="text" @click="revokeShare(prop.row.id)">Revoke</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="add">
-      <div>
-        <el-input v-model="email" placeholder="E-mail ...">
-          <span slot="prepend">Share to</span>
-        </el-input>
+    <div v-loading="loading">
+      <div style="line-height: 30px;">
+        <el-switch v-model="isPublic" v-on:change="setPublic"/>
+        <span style="margin-left: 5px;">
+          Public sharing (all followers have read permission)
+        </span>
       </div>
-      <el-button type="primary" v-on:click="doShare">Share</el-button>
+      <el-table :data="shared">
+        <el-table-column
+          label="User">
+          <template slot-scope="prop">
+            <span v-if="prop.row.touser">{{ prop.row.touser.nickname }} &lt;{{ prop.row.touser.email }}&gt;</span>
+            <span v-else>Unknown user ({{ prop.row.touserid }})</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="Permission"
+          width="150">
+          <template slot-scope="prop">
+            <span v-if="prop.row.permission == 1">Write</span>
+            <span v-else>Read</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="Actions"
+          width="100">
+          <template slot-scope="prop">
+            <el-button type="text" @click="revokeShare(prop.row.id)">Revoke</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="add">
+        <div>
+          <el-input v-model="email" placeholder="E-mail ...">
+            <span slot="prepend">Share to</span>
+          </el-input>
+        </div>
+        <el-switch v-model="editable" inactive-text="Read-only" active-text="Editable"/>
+        <el-button type="primary" icon="el-icon-share" v-on:click="doShare">Share</el-button>
+      </div>
     </div>
   </el-dialog>
 </template>
@@ -36,7 +53,9 @@ export default {
       loading: false,
       id: 0,
       show: false,
+      isPublic: false,
       email: '',
+      editable: false,
       shared: []
     }
   },
@@ -51,7 +70,8 @@ export default {
       api('share/single', {
         noteid: this.id
       }).then(data => {
-        this.shared = data
+        this.isPublic = (data.public == 1)
+        this.shared = data.shared
       }).catch(reason => {
         this.$message({
           showClose: true,
@@ -66,7 +86,8 @@ export default {
       }
       api('share/add', {
         noteid: this.id,
-        email: this.email
+        email: this.email,
+        editable: this.editable
       }).then(data => {
         this.$message({
           showClose: true,
@@ -100,6 +121,20 @@ export default {
           message: reason
         })
       })
+    },
+    setPublic () {
+      api('share/setpublic', {
+        noteid: this.id,
+        public: this.isPublic
+      }).then(data => {
+        this.loadShare()
+      }).catch(reason => {
+        this.$message({
+          showClose: true,
+          type: 'error',
+          message: reason
+        })
+      })
     }
   }
 }
@@ -109,10 +144,15 @@ export default {
 .add {
   width: 100%;
   display: flex;
+  align-items: center;
   margin-top: 10px;
 
   >:first-child {
     flex: 1;
+  }
+
+  >:nth-child(2) {
+    margin: 0 10px;
   }
 }
 </style>

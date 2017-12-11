@@ -23,7 +23,7 @@ class Share extends BLController
         }
         $shares = Sharing::query()->where('noteid', $noteid)->get();
         if (empty($shares)) {
-            return $this->json(Response::success([]));
+            return $this->json(Response::success(['public' => $note->public]));
         }
         $userids = [];
         foreach ($shares as $share) {
@@ -38,7 +38,7 @@ class Share extends BLController
         foreach ($shares as $share) {
             $result[] = array_merge($share->data(), ['touser' => $useridMap[$share->touserid]]);
         }
-        return $this->json(Response::success($result));
+        return $this->json(Response::success(['public' => $note->public, 'shared' => $result]));
     }
 
     public function tome()
@@ -57,6 +57,24 @@ class Share extends BLController
         $notes = \app\model\Note::query()->fields(['id', 'title'])
             ->whereRaw('id IN (' . join(',', $noteids) . ')')->get();
         return $this->json(Response::success($notes));
+    }
+
+    public function setpublic()
+    {
+        if (empty(AuthToken::getId())) {
+            return $this->json(Response::notLoggedIn());
+        }
+        $noteid = BLRequest::bodyJson('noteid');
+        $note = \app\model\Note::get($noteid);
+        if (empty($note) || $note->userid != AuthToken::getId()) {
+            return $this->json(Response::error('note does not exist'));
+        }
+        $note->public = BLRequest::bodyJson('public') ? 1 : 0;
+        if (!empty($note->save())) {
+            return $this->json(Response::success($noteid));
+        } else {
+            return $this->json(Response::unknownError());
+        }
     }
 
     public function add()
@@ -79,7 +97,8 @@ class Share extends BLController
         }
         $newId = Sharing::insert([
             'noteid' => $noteid,
-            'touserid' => $user[0]->id
+            'touserid' => $user[0]->id,
+            'permission' => BLRequest::bodyJson('editable') ? 1 : 0
         ]);
         if (empty($newId)) {
             return $this->json(Response::unknownError());

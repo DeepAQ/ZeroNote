@@ -7,6 +7,7 @@ use app\util\AuthToken;
 use app\util\Response;
 use BestLang\core\controller\BLController;
 use BestLang\core\util\BLRequest;
+use DiffMatchPatch\DiffMatchPatch;
 
 class Note extends BLController
 {
@@ -30,7 +31,7 @@ class Note extends BLController
 
     /**
      * @param $note
-     * @return int, 0: no permission, 1: owner, 2: readonly shared, 3: editable shared
+     * @return int, 0: no permission, 1: readonly shared, 2: editable shared, 3: owner
      */
     private function checkPermission($note)
     {
@@ -40,12 +41,14 @@ class Note extends BLController
         if ($note->userid != AuthToken::getId()) {
             $sharing = Sharing::query()->where('noteid', $note->id)->where('touserid', AuthToken::getId())->get();
             if (!empty($sharing)) {
-                return 2 + $sharing[0]->permission;
+                return 1 + $sharing[0]->permission;
+            } else if ($note->public == 1) {
+                return 1;
             } else {
                 return 0;
             }
         }
-        return 1;
+        return 3;
     }
 
     public function single()
@@ -56,7 +59,7 @@ class Note extends BLController
         $note = \app\model\Note::get(BLRequest::bodyJson('id'));
         $permission = $this->checkPermission($note);
         if ($permission > 0) {
-            return $this->json(Response::success(array_merge($note->data(), ['share' => $permission >= 2])));
+            return $this->json(Response::success(array_merge($note->data(), ['permission' => $permission])));
         } else {
             return $this->json(Response::error('Note does not exist'));
         }
@@ -72,7 +75,10 @@ class Note extends BLController
         $permission = $this->checkPermission($note);
         if ($permission > 0) {
             if ($note->updated > $lastUpdate) {
-                return $this->json(Response::success($note));
+                $dmp = new DiffMatchPatch();
+                return $this->json(Response::success([
+                    'patch' => $dmp->patch_toText($dmp->patch_make(BLRequest::bodyJson('content', ''), $note->content))
+                ]));
             } else {
                 return $this->json(Response::success(false));
             }
@@ -102,31 +108,49 @@ class Note extends BLController
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
-        $id = BLRequest::bodyJson('id');
         $note = \app\model\Note::get(BLRequest::bodyJson('id'));
-        if (empty($note) || $note->userid != AuthToken::getId()) {
+        if ($this->checkPermission($note) < 3) {
             return $this->json(Response::error('Note does not exist'));
         }
-        if (!empty(\app\model\Note::delete($id))) {
+        if (!empty($note->remove())) {
             return $this->json(Response::success($note->id));
         } else {
             return Response::unknownError();
         }
     }
 
-    public function updatecontent()
+//    public function updatecontent()
+//    {
+//        if (empty(AuthToken::getId())) {
+//            return $this->json(Response::notLoggedIn());
+//        }
+//        $note = \app\model\Note::get(BLRequest::bodyJson('id'));
+//        if ($this->checkPermission($note) < 2) {
+//            return $this->json(Response::error('No permission'));
+//        }
+//        $note->content = BLRequest::bodyJson('content');
+//        $note->updated = time();
+//        if ($note->save() > 0) {
+//            return $this->json(Response::success($note->id));
+//        } else {
+//            return Response::unknownError();
+//        }
+//    }
+
+    public function patch()
     {
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
         $note = \app\model\Note::get(BLRequest::bodyJson('id'));
-        if (empty($note) || $note->userid != AuthToken::getId()) {
-            return $this->json(Response::error('Note does not exist'));
+        if ($this->checkPermission($note) < 2) {
+            return $this->json(Response::error('No permission'));
         }
-        $note->content = BLRequest::bodyJson('content');
+        $dmp = new DiffMatchPatch();
+        $note->content = $dmp->patch_apply($dmp->patch_fromText(BLRequest::bodyJson('patch')), $note->content)[0];
         $note->updated = time();
         if ($note->save() > 0) {
-            return $this->json(Response::success($note->id));
+            return $this->json(Response::success(['content' => $note->content]));
         } else {
             return Response::unknownError();
         }
@@ -138,8 +162,8 @@ class Note extends BLController
             return $this->json(Response::notLoggedIn());
         }
         $note = \app\model\Note::get(BLRequest::bodyJson('id'));
-        if (empty($note) || $note->userid != AuthToken::getId()) {
-            return $this->json(Response::error('Note does not exist'));
+        if ($this->checkPermission($note) < 2) {
+            return $this->json(Response::error('No permission'));
         }
         $note->title = BLRequest::bodyJson('title');
         $note->updated = time();

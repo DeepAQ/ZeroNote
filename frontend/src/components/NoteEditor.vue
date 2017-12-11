@@ -38,8 +38,11 @@
 import NoteShare from './NoteShare'
 import api from '../utils/api'
 import _ from 'lodash'
+import DMP from 'diff-match-patch'
 
-let lastUpdate = 0
+let serverContent = ''
+let pollStarted = false
+const dmp = new DMP()
 
 export default {
   components: { NoteShare },
@@ -73,11 +76,14 @@ export default {
       api('note/single', {
         id: this.id
       }).then(data => {
+        serverContent = data.content ? data.content : ''
+        this.content = serverContent
         this.title = data.title ? data.title : ''
-        this.content = data.content ? data.content : ''
-        this.readonly = data.share
-        lastUpdate = data.updated
-        setTimeout(this.pollChanges, 0)
+        this.readonly = (data.permission == 1)
+        if (!pollStarted) {
+          pollStarted = true
+          setTimeout(this.pollChanges, 1000)
+        }
       }).catch(reason => {
         this.$message({
           showClose: true,
@@ -103,11 +109,15 @@ export default {
     },
     saveContent () {
       if (!this.saving) {
+        const patch = dmp.patch_toText(dmp.patch_make(serverContent, this.content))
+        if (patch == '') return
         this.saving = true
-        api('note/updatecontent', {
+        api('note/patch', {
           id: this.id,
-          content: this.content
-        }).then(data => {}).catch(reason => {
+          patch: patch
+        }).then(data => {
+          serverContent = data.content
+        }).catch(reason => {
           this.$message({
             showClose: true,
             type: 'error',
@@ -157,18 +167,22 @@ export default {
       this.polling = true
       api('note/poll', {
         id: this.id,
-        lastUpdate: lastUpdate
+        content: serverContent
       }).then(data => {
-        if (data) {
+        if (data.patch != '') {
+          const patches = dmp.patch_fromText(data.patch)
+          serverContent = dmp.patch_apply(patches, serverContent)[0]
+          const newContent = dmp.patch_apply(patches, this.content)[0]
           const textArea = this.$el.querySelector('.auto-textarea-input')
           let cursorPos = textArea.selectionStart
-          if (this.content.substr(0, cursorPos) != data.content.substr(0, cursorPos)) {
-            cursorPos += data.content.length - this.content.length
+          if (this.content.substr(0, cursorPos) != newContent.substr(0, cursorPos)) {
+            cursorPos += newContent.length - this.content.length
           }
-          this.title = data.title ? data.title : ''
-          this.content = data.content ? data.content : ''
-          lastUpdate = data.updated
+          textArea.disabled = true
+          this.content = newContent
           setTimeout(() => {
+            textArea.disabled = false
+            textArea.focus()
             textArea.selectionStart = textArea.selectionEnd = cursorPos
           }, 0)
         }
