@@ -17,6 +17,12 @@ export default new Router({
       name: 'share',
       component: NoteEditor,
       props: true
+    },
+    {
+      path: '/timeline/:id',
+      name: 'timeline',
+      component: NoteEditor,
+      props: true
     }
   ]
 })

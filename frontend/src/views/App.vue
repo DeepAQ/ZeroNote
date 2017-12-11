@@ -23,6 +23,9 @@
           <el-tab-pane label="Shared" name="share">
             <ShareList/>
           </el-tab-pane>
+          <el-tab-pane label="Timeline" name="timeline">
+            <Timeline/>
+          </el-tab-pane>
         </el-tabs>
       </el-aside>
       <el-main>
@@ -34,11 +37,12 @@
 
 <script>
 import NoteList from '../components/NoteList'
-import NoteEditor from '../components/NoteEditor'
 import ShareList from '../components/ShareList'
+import Timeline from '../components/Timeline'
+import NoteEditor from '../components/NoteEditor'
 
 export default {
-  components: { NoteList, ShareList, NoteEditor },
+  components: { NoteList, ShareList, Timeline, NoteEditor },
   data () {
     return {
       nickname: localStorage.nickname,

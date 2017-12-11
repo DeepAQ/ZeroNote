@@ -2,7 +2,7 @@
   <div id="editor" v-loading="loading">
     <div id="title_bar">
       <div>
-        <el-input v-model="title" placeholder="Untitled" v-on:blur="saveTitle" :disabled="readonly">
+        <el-input v-model="title" placeholder="Untitled" v-on:blur="saveTitle" :disabled="permission < 2">
           <span slot="prepend">Title</span>
           <span slot="append">
             <span v-if="saving"><i class="el-icon-loading"></i> Syncing</span>
@@ -11,7 +11,7 @@
         </el-input>
       </div>
       <div>
-        <el-button v-if="!readonly" type="primary" icon="el-icon-share" v-on:click="shareNote">Share</el-button>
+        <el-button v-if="permission == 3" type="primary" icon="el-icon-share" v-on:click="shareNote">Share</el-button>
         <el-dropdown v-on:command="exportNote">
           <el-button type="primary" icon="el-icon-download">
             Export <i class="el-icon-arrow-down el-icon--right"></i>
@@ -27,7 +27,7 @@
       ref="editor"
       v-model="content"
       language="en"
-      :editable="!readonly"
+      :editable="permission >= 2"
       v-on:save="saveContent"
       v-on:imgAdd="uploadFile"/>
     <NoteShare ref="share"/>
@@ -52,7 +52,7 @@ export default {
       loading: false,
       polling: false,
       saving: false,
-      readonly: false,
+      permission: 0,
       title: '',
       content: ''
     }
@@ -79,7 +79,7 @@ export default {
         serverContent = data.content ? data.content : ''
         this.content = serverContent
         this.title = data.title ? data.title : ''
-        this.readonly = (data.permission == 1)
+        this.permission = data.permission
         if (!pollStarted) {
           pollStarted = true
           setTimeout(this.pollChanges, 1000)
