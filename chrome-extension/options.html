@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Send to ZeroNote</title>
+    <style>
+      body {
+        width: 400px;
+        margin: 20px;
+      }
+      input {
+        width: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2><img src="notebook.png" style="max-height: 20px;"> Send to ZeroNote</h2>
+    <div id="login" style="display: none;">
+      <h3>Login</h3>
+      <div><input id="email" type="email" placeholder="E-mail"></div>
+      <div><input id="password" type="password" placeholder="Password"></div><br>
+      <button id="btnLogin">Login</button>
+    </div>
+    <div id="logged" style="display: none;">
+      <h3>Logged in as :</h3>
+      <div id="logged_user"></div><br>
+      <button id="btnLogout">Logout</button>
+    </div>
+    <script src="zepto.min.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
