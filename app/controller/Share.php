@@ -54,9 +54,22 @@ class Share extends BLController
         foreach ($shares as $share) {
             $noteids[] = $share->noteid;
         }
-        $notes = \app\model\Note::query()->fields(['id', 'title'])
-            ->whereRaw('id IN (' . join(',', $noteids) . ')')->get();
-        return $this->json(Response::success($notes));
+        $notes = \app\model\Note::query()->fields(['id', 'userid', 'title', 'created'])
+            ->whereRaw('id IN (' . join(',', $noteids) . ')')->orderBy('created desc')->get();
+        $userids = [];
+        foreach ($notes as $note) {
+            $userids[] = $note->userid;
+        }
+        $useridMap = [];
+        foreach (User::query()->fields(['id', 'email', 'nickname'])
+                     ->whereRaw('id IN (' . join(',', $userids) . ')')->get() as $user) {
+            $useridMap[$user->id] = $user;
+        }
+        $result = [];
+        foreach ($notes as $note) {
+            $result[] = array_merge($note->data(), ['user' => $useridMap[$note->userid]]);
+        }
+        return $this->json(Response::success($result));
     }
 
     public function setpublic()

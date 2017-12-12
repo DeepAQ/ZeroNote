@@ -99,10 +99,12 @@ class Note extends BLController
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
-        $nbid = BLRequest::bodyJson('nbid');
+        $nbid = BLRequest::bodyJson('nbid', 0);
         $newId = \app\model\Note::insert([
             'nbid' => $nbid,
-            'userid' => AuthToken::getId()
+            'userid' => AuthToken::getId(),
+            'title' => BLRequest::bodyJson('title'),
+            'content' => BLRequest::bodyJson('content')
         ]);
         if (empty($newId)) {
             return $this->json(Response::unknownError());
