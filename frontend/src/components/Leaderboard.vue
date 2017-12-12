@@ -11,6 +11,7 @@
       </el-table-column>
       <el-table-column label="Upvotes" width="100">
         <template slot-scope="prop">
+          <i class="el-icon-star-on"></i>
           {{ prop.row.upvotes }}
         </template>
       </el-table-column>

@@ -3,16 +3,7 @@
     <el-header height="50px">
       <div class="title">ZeroNote</div>
       <div class="nav"></div>
-      <div class="user">
-        <el-dropdown v-on:command="logoutClick">
-          <span class="el-dropdown-link">
-            {{nickname}} &lt;{{email}}&gt; <i class="el-icon-arrow-down el-icon--right"></i>
-          </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>Logout</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-      </div>
+      <UserInfo/>
     </el-header>
     <el-container>
       <el-aside>
@@ -36,17 +27,16 @@
 </template>
 
 <script>
+import UserInfo from '../components/UserInfo'
 import NoteList from '../components/NoteList'
 import ShareList from '../components/ShareList'
 import Timeline from '../components/Timeline'
 import NoteEditor from '../components/NoteEditor'
 
 export default {
-  components: { NoteList, ShareList, Timeline, NoteEditor },
+  components: { UserInfo, NoteList, ShareList, Timeline, NoteEditor },
   data () {
     return {
-      nickname: localStorage.nickname,
-      email: localStorage.email,
       tab: 'note'
     }
   },
@@ -63,11 +53,6 @@ export default {
       if (this.$route.name) {
         this.tab = this.$route.name
       }
-    },
-    logoutClick () {
-      console.log('logout')
-      delete localStorage['token']
-      window.location = '/auth.html'
     }
   }
 }

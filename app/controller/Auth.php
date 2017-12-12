@@ -51,4 +51,43 @@ class Auth extends BLController
             return $this->json(Response::error('System error, try again later'));
         }
     }
+
+    public function changenickname()
+    {
+        if (empty(AuthToken::getId())) {
+            return $this->json(Response::notLoggedIn());
+        }
+        $user = User::get(AuthToken::getId());
+        if (empty($user)) {
+            return $this->json(Response::error('User does not exist'));
+        }
+        $user->nickname = BLRequest::bodyJson('nickname');
+        if (!empty($user->save())) {
+            return $this->json(Response::success($user->id));
+        } else {
+            return $this->json(Response::unknownError());
+        }
+    }
+
+    public function changepassword()
+    {
+        if (empty(AuthToken::getId())) {
+            return $this->json(Response::notLoggedIn());
+        }
+        $user = User::get(AuthToken::getId());
+        if (empty($user)) {
+            return $this->json(Response::error('User does not exist'));
+        }
+        $pass = BLRequest::bodyJson('password');
+        $newPass = BLRequest::bodyJson('newpassword');
+        if ($user->password != hash('sha256', $pass)) {
+            return $this->json(Response::error('Current password mismatch'));
+        }
+        $user->password = hash('sha256', $newPass);
+        if (!empty($user->save())) {
+            return $this->json(Response::success($user->id));
+        } else {
+            return $this->json(Response::unknownError());
+        }
+    }
 }

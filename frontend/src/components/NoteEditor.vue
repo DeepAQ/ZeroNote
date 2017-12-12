@@ -71,6 +71,9 @@ export default {
   mounted () {
     this.loadNote()
   },
+  beforeDestroy () {
+    pollStarted = false
+  },
   watch: {
     id () {
       this.loadNote()
@@ -167,9 +170,12 @@ export default {
           break
         case 'pdf':
           let w = window.open()
-          w.document.write(`<html><head><title>${this.title}</title></head><body>${this.$refs.editor.d_render}</body></html>`)
-          w.print()
-          w.close()
+          w.document.write(`<html><head><title>${this.title}</title><style>img{max-width:100%;}</style></head>
+          <body>${this.$refs.editor.d_render}</body></html>`)
+          setTimeout(() => {
+            w.print()
+            w.close()
+          }, 0)
           break
       }
     },
@@ -200,7 +206,9 @@ export default {
           }, 0)
         }
       }).catch(reason => {}).then(() => {
-        setTimeout(this.pollChanges, 1000)
+        if (pollStarted) {
+          setTimeout(this.pollChanges, 1000)
+        }
         this.polling = false
       })
     },
