@@ -12,6 +12,7 @@
         <div v-if="props.item.type == 'notebooks'">笔记本 | {{ props.item.name }}</div>
         <div v-if="props.item.type == 'notes'">笔记 | {{ props.item.title }}</div>
         <div v-if="props.item.type == 'notesFullText'">全文 | {{ props.item.title }}</div>
+        <div v-if="props.item.type == 'tags'">标签 | {{ props.item.title }}</div>
       </template>
     </el-autocomplete>
   </div>
@@ -52,6 +53,7 @@ export default {
           break
         case 'notes':
         case 'notesFullText':
+        case 'tags':
           this.$router.push(`/note/${item.nbid}/${item.id}`)
           break
       }

@@ -12,7 +12,8 @@ module.exports = {
   context: path.resolve(__dirname, '../'),
   entry: {
     index: './src/main.js',
-    auth: './src/page_auth.js'
+    auth: './src/page_auth.js',
+    admin: './src/page_admin.js',
   },
   output: {
     path: config.build.assetsRoot,

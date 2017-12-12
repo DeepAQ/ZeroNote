@@ -11,7 +11,22 @@
         </el-input>
       </div>
       <div>
+        <el-popover ref="poptags" placement="bottom-end" width="300px">
+          <el-tag v-for="tag in tags" :key="tag" closable @close="removeTag(tag)">{{ tag }}</el-tag>
+          <el-input
+            v-if="tagInput"
+            v-model="tagValue"
+            ref="saveTagInput"
+            size="small"
+            @keyup.enter.native="newTag"
+            @blur="newTag">
+          </el-input>
+          <el-button v-else class="button-new-tag" size="small" @click="showTagInput">+ New Tag</el-button>
+        </el-popover>
         <el-button-group>
+          <el-button v-popover:poptags type="primary" icon="el-icon-menu">
+            Tags
+          </el-button>
           <el-button type="primary" v-on:click="upDownVote">
             <i class="el-icon-star-on" v-if="upvoted"></i>
             <i class="el-icon-star-off" v-else></i>
@@ -65,7 +80,10 @@ export default {
       title: '',
       content: '',
       upvotes: 0,
-      upvoted: false
+      upvoted: false,
+      tags: [],
+      tagInput: false,
+      tagValue: ''
     }
   },
   mounted () {
@@ -82,6 +100,21 @@ export default {
       if (!this.loading && !this.polling) {
         this.saveDebounce()
       }
+    },
+    tags () {
+      if (!this.loading && !this.saving) {
+        this.saving = true
+        api('note/updatetags', {
+          id: this.id,
+          tags: JSON.stringify(this.tags)
+        }).then(data => {}).catch(reason => {
+          this.$message({
+            showClose: true,
+            type: 'error',
+            message: `Tags save failed: ${reason}`
+          })
+        }).then(() => this.saving = false)
+      }
     }
   },
   methods: {
@@ -96,6 +129,13 @@ export default {
         this.permission = data.permission
         this.upvotes = data.upvotes
         this.upvoted = data.upvoted
+        this.tags = []
+        try {
+          const tags = JSON.parse(data.tags)
+          if (tags && tags.length > 0) {
+            this.tags = tags
+          }
+        } catch (e) {}
         if (!pollStarted) {
           pollStarted = true
           setTimeout(this.pollChanges, 1000)
@@ -225,6 +265,24 @@ export default {
           message: `Upload failed: ${reason}`
         })
       })
+    },
+    showTagInput () {
+      this.tagInput = true
+      this.$nextTick(_ => {
+        this.$refs.saveTagInput.$refs.input.focus()
+      })
+    },
+    newTag () {
+      if (this.tagValue != '') {
+        if (this.tags.indexOf(this.tagValue) < 0) {
+          this.tags.push(this.tagValue)
+        }
+        this.tagValue = ''
+      }
+      this.tagInput = false
+    },
+    removeTag (tag) {
+      this.tags.splice(this.tags.indexOf(tag), 1)
     }
   }
 }

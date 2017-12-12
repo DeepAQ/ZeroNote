@@ -23,6 +23,9 @@ class Auth extends BLController
         if ($user[0]->password != hash('sha256', $vo['password'])) {
             return $this->json(Response::error('Incorrect password, please try again'));
         }
+        if ($user[0]->disabled > 1) {
+            return $this->json(Response::error('User disabled'));
+        }
         return $this->json(Response::success([
             'nickname' => $user[0]->nickname,
             'token' => AuthToken::sign($user[0]->id)

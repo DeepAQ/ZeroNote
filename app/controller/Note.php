@@ -183,6 +183,24 @@ class Note extends BLController
         }
     }
 
+    public function updatetags()
+    {
+        if (empty(AuthToken::getId())) {
+            return $this->json(Response::notLoggedIn());
+        }
+        $note = \app\model\Note::get(BLRequest::bodyJson('id'));
+        if ($this->checkPermission($note) < 2) {
+            return $this->json(Response::error('No permission'));
+        }
+        $note->tags = BLRequest::bodyJson('tags');
+        $note->updated = time();
+        if ($note->save() > 0) {
+            return $this->json(Response::success($note->id));
+        } else {
+            return Response::unknownError();
+        }
+    }
+
     public function updownvote()
     {
         if (empty(AuthToken::getId())) {

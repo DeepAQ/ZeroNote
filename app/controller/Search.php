@@ -26,11 +26,17 @@ class Search extends BLController
             ->where('title', 'like', '%' . $kw . '%')
             ->fields(['id', 'nbid', 'title'])
             ->get();
+        $tags = \app\model\Note::query()
+            ->where('userid', $userid)
+            ->where('tags', 'like', '%' . $kw . '%')
+            ->fields(['id', 'nbid', 'title'])
+            ->get();
         $notesFullText = \app\model\Note::query()
             ->where('userid', $userid)
             ->where('content', 'like', '%' . $kw . '%')
             ->fields(['id', 'nbid', 'title'])
             ->get();
-        return $this->json(Response::success(['notebooks' => $notebooks, 'notes' => $notes, 'notesFullText' => $notesFullText]));
+        return $this->json(Response::success(['notebooks' => $notebooks, 'notes' => $notes,
+            'tags' => $tags, 'notesFullText' => $notesFullText]));
     }
 }

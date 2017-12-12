@@ -21,6 +21,6 @@ export default function (path, data) {
             } else {
                 reject('Unknown error')
             }
-        }).catch(reason => reject(reason))
+        }).catch(reason => reject(reason.response.statusText))
     })
 }
