@@ -2,7 +2,9 @@
   <div>
     <div class="search_bar">
       <NoteSearch v-on:nb-selected="nbSelected">
-        <el-button slot="append" icon="el-icon-plus" v-on:click="newNbClick"/>
+        <el-tooltip slot="append" content="New notebook" placement="right">
+          <el-button icon="el-icon-plus" v-on:click="newNbClick"/>
+        </el-tooltip>
       </NoteSearch>
     </div>
     <el-menu ref="menu" v-loading="loading" v-on:open="menuNbOpen" :router="true">

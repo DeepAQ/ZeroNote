@@ -11,6 +11,7 @@
       <template slot-scope="props">
         <div v-if="props.item.type == 'notebooks'">笔记本 | {{ props.item.name }}</div>
         <div v-if="props.item.type == 'notes'">笔记 | {{ props.item.title }}</div>
+        <div v-if="props.item.type == 'notesFullText'">全文 | {{ props.item.title }}</div>
       </template>
     </el-autocomplete>
   </div>
@@ -50,6 +51,7 @@ export default {
           this.$emit('nb-selected', item.id)
           break
         case 'notes':
+        case 'notesFullText':
           this.$router.push(`/note/${item.nbid}/${item.id}`)
           break
       }

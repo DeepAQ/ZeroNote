@@ -11,7 +11,16 @@
         </el-input>
       </div>
       <div>
-        <el-button v-if="permission == 3" type="primary" icon="el-icon-share" v-on:click="shareNote">Share</el-button>
+        <el-button-group>
+          <el-button type="primary" v-on:click="upDownVote">
+            <i class="el-icon-star-on" v-if="upvoted"></i>
+            <i class="el-icon-star-off" v-else></i>
+            {{ upvotes }}
+          </el-button>
+          <el-button v-if="permission == 3" type="primary" icon="el-icon-share" v-on:click="shareNote">
+            Share
+          </el-button>
+        </el-button-group>
         <el-dropdown v-on:command="exportNote">
           <el-button type="primary" icon="el-icon-download">
             Export <i class="el-icon-arrow-down el-icon--right"></i>
@@ -54,7 +63,9 @@ export default {
       saving: false,
       permission: 0,
       title: '',
-      content: ''
+      content: '',
+      upvotes: 0,
+      upvoted: false
     }
   },
   mounted () {
@@ -80,6 +91,8 @@ export default {
         this.content = serverContent
         this.title = data.title ? data.title : ''
         this.permission = data.permission
+        this.upvotes = data.upvotes
+        this.upvoted = data.upvoted
         if (!pollStarted) {
           pollStarted = true
           setTimeout(this.pollChanges, 1000)
@@ -178,17 +191,31 @@ export default {
           if (this.content.substr(0, cursorPos) != newContent.substr(0, cursorPos)) {
             cursorPos += newContent.length - this.content.length
           }
-          textArea.disabled = true
+          // textArea.disabled = true
           this.content = newContent
           setTimeout(() => {
-            textArea.disabled = false
-            textArea.focus()
+            // textArea.disabled = false
+            // textArea.focus()
             textArea.selectionStart = textArea.selectionEnd = cursorPos
           }, 0)
         }
       }).catch(reason => {}).then(() => {
         setTimeout(this.pollChanges, 1000)
         this.polling = false
+      })
+    },
+    upDownVote () {
+      api('note/updownvote', {
+        noteid: this.id
+      }).then(data => {
+        this.upvotes = data.upvotes
+        this.upvoted = data.upvoted
+      }).catch(reason => {
+        this.$message({
+          showClose: true,
+          type: 'error',
+          message: `Upload failed: ${reason}`
+        })
       })
     }
   }
