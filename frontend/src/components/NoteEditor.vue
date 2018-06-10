@@ -6,7 +6,10 @@
           <span slot="prepend">Title</span>
           <span slot="append">
             <span v-if="saving"><i class="el-icon-loading"></i> Syncing</span>
-            <span v-else><i class="el-icon-check"></i> Latest</span>
+            <span v-else>
+              <span v-if="permission < 2"><i class="el-icon-warning"></i> Read-only</span>
+              <span v-else><i class="el-icon-check"></i> Latest</span>
+            </span>
           </span>
         </el-input>
       </div>
@@ -24,7 +27,7 @@
           <el-button v-else class="button-new-tag" size="small" @click="showTagInput">+ New Tag</el-button>
         </el-popover>
         <el-button-group>
-          <el-button v-popover:poptags type="primary" icon="el-icon-menu">
+          <el-button v-if="permission == 3" v-popover:poptags type="primary" icon="el-icon-menu">
             Tags
           </el-button>
           <el-button type="primary" v-on:click="upDownVote">
@@ -70,7 +73,7 @@ const dmp = new DMP()
 
 export default {
   components: { NoteShare },
-  props: ['id'],
+  props: ['nbid', 'id'],
   data () {
     return {
       loading: false,
@@ -160,7 +163,10 @@ export default {
             type: 'error',
             message: `Autosave failed: ${reason}`
           })
-        }).then(() => this.saving = false)
+        }).then(() => {
+          this.saving = false
+          this.$emit('nbReload', this.nbid)
+        })
       }
     },
     saveContent () {

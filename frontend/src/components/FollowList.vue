@@ -74,6 +74,12 @@ export default {
             message: `Follow failed: ${reason}`
           })
         })
+      } else {
+        this.$message({
+            showClose: true,
+            type: 'error',
+            message: 'Please type E-mail'
+          })
       }
     },
     unfollow (id) {

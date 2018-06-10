@@ -16,7 +16,7 @@
       <el-input v-model="newpass2" type="password" placeholder="Re-type password" required/>
       <div slot="footer">
         <el-button @click="showChangePass = false">Cancel</el-button>
-        <el-button type="primary" v-on:click="changePassword">Change</el-button>
+        <el-button type="primary" v-on:click="changePassword">OK</el-button>
       </div>
     </el-dialog>
   </div>
@@ -75,6 +75,11 @@ export default {
     },
     changePassword () {
       if (this.password == '' || this.newpass == '' || this.newpass2 == '') {
+        this.$message({
+          showClose: true,
+          type: 'error',
+          message: 'Please type old and new passwords'
+        })
         return
       }
       if (this.newpass != this.newpass2) {

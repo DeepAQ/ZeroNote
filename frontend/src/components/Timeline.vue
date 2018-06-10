@@ -3,16 +3,16 @@
     <div class="head">
       <el-button-group>
         <el-button type="primary" @click="openFollow(1)">
-          <div class="btnicon"><i class="el-icon-star-off"></i></div>
+          <div class="btnicon"><i class="el-icon-arrow-up"></i></div>
           Following
         </el-button>
         <el-button type="primary" @click="openFollow(2)">
-          <div class="btnicon"><i class="el-icon-view"></i></div>
+          <div class="btnicon"><i class="el-icon-arrow-down"></i></div>
           Follower
         </el-button>
         <el-button type="primary" v-on:click="openLeaderboard">
           <div class="btnicon"><i class="el-icon-sort"></i></div>
-          Leaderboard
+          Trending
         </el-button>
       </el-button-group>
     </div>

@@ -9,7 +9,7 @@
       <el-aside>
         <el-tabs :value="tab">
           <el-tab-pane label="Notes" name="note">
-            <NoteList/>
+            <NoteList ref="notelist"/>
           </el-tab-pane>
           <el-tab-pane label="Shared" name="share">
             <ShareList/>
@@ -20,7 +20,7 @@
         </el-tabs>
       </el-aside>
       <el-main>
-        <router-view/>
+        <router-view @nbReload="nbReload"/>
       </el-main>
     </el-container>
   </el-container>
@@ -53,6 +53,9 @@ export default {
       if (this.$route.name) {
         this.tab = this.$route.name
       }
+    },
+    nbReload (nbid) {
+      this.$refs.notelist.loadSubList(nbid)
     }
   }
 }

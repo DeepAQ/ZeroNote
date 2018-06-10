@@ -1,12 +1,12 @@
 <template>
-  <el-dialog title="Leaderboard" :visible.sync="show">
+  <el-dialog title="Trending" :visible.sync="show">
     <el-table :data="list" stripe
       row-class-name="pointer"
       v-loading="loading"
       v-on:row-click="rowClick">
       <el-table-column label="Title">
         <template slot-scope="prop">
-          <span>{{ prop.row.title }}</span>
+          <span>{{ prop.row.title == '' ? 'Untitled' : prop.row.title }}</span>
         </template>
       </el-table-column>
       <el-table-column label="Upvotes" width="100">

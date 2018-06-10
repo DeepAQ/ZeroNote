@@ -1,11 +1,8 @@
 <template>
   <div>
     <div class="search_bar">
-      <NoteSearch v-on:nb-selected="nbSelected">
-        <el-tooltip slot="append" content="New notebook" placement="right">
-          <el-button icon="el-icon-plus" v-on:click="newNbClick"/>
-        </el-tooltip>
-      </NoteSearch>
+      <NoteSearch v-on:nb-selected="nbSelected"/>
+      <el-button type="primary" icon="el-icon-plus" v-on:click="newNbClick">New notebook</el-button>
     </div>
     <el-menu ref="menu" v-loading="loading" v-on:open="menuNbOpen" :router="true">
       <el-submenu v-for="nb in notebooks" :key="nb.id" :index="nb.id + ''">
@@ -19,7 +16,7 @@
               <i class="el-icon-edit" v-if="nb.id > 0" @click.stop="renameNotebook(nb.id, nb.name)"></i>
             </el-tooltip>
             <el-tooltip content="Delete notebook" placement="bottom-start">
-              <i class="el-icon-delete" v-if="nb.id > 0" @click.stop="deleteNotebook(nb.id)"></i>
+              <i class="el-icon-close" v-if="nb.id > 0" @click.stop="deleteNotebook(nb.id)"></i>
             </el-tooltip>
             <el-tooltip content="New note" placement="bottom-start">
               <i class="el-icon-plus" @click.stop="newNote(nb.id)"></i>
@@ -35,20 +32,20 @@
               </div>
               <div>
                 <el-tooltip content="Delete note" placement="bottom-start">
-                  <i class="el-icon-delete" @click.stop="deleteNote(nb.id, nt.id)"></i>
+                  <i class="el-icon-close" @click.stop="deleteNote(nb.id, nt.id)"></i>
                 </el-tooltip>
               </div>
             </div>
           </el-menu-item>
           <div class="nodata" style="line-height: 40px;" v-if="!note_loading[nb.id] && (!notes[nb.id] || notes[nb.id].length == 0)">
-            <i class="el-icon-document" style="font-size: 24px;"></i>
+            <i class="el-icon-warning" style="font-size: 24px;"></i>
             <span style="font-size: 14px;">No notes in notebook</span>
           </div>
         </div>
       </el-submenu>
     </el-menu>
     <div class="nodata" v-if="!loading && notebooks.length == 0">
-      <i class="el-icon-edit-outline" style="font-size: 60px;"></i><br><br>
+      <i class="el-icon-warning" style="font-size: 60px;"></i><br><br>
       No notebooks,<br>try to create one~
     </div>
   </div>
@@ -125,6 +122,9 @@ export default {
         })
       }).then(() => {
         this.$set(this.note_loading, nbid, false)
+        if (this.routeNtid > 0) {
+          this.$refs.menu.activeIndex = `/note/${this.routeNbid}/${this.routeNtid}`
+        }
       })
     },
     newNbClick () {
@@ -254,10 +254,12 @@ export default {
 <style lang="less" scoped>
 .search_bar {
   padding: 0 20px 10px 20px;
-  display: flex;
 
-  .note-search {
-    flex: 1;
+  .el-button {
+    height: 30px;
+    padding: 0;
+    margin-top: 10px;
+    width: 100%;
   }
 }
 

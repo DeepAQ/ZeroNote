@@ -7,7 +7,6 @@
       prefix-icon="el-icon-search"
       :fetch-suggestions="doSearch"
       v-on:select="selectResult">
-      <slot name="append" slot="append"></slot>
       <template slot-scope="props">
         <div v-if="props.item.type == 'notebooks'">笔记本 | {{ props.item.name }}</div>
         <div v-if="props.item.type == 'notes'">笔记 | {{ props.item.title }}</div>
@@ -63,6 +62,10 @@ export default {
 </script>
 
 <style lang="less">
+.el-autocomplete {
+  width: 100%;
+}
+
 .el-autocomplete-suggestion {
   width: 250px !important;
 }

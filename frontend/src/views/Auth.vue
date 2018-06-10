@@ -18,15 +18,15 @@
       <header>ZeroNote</header>
       <el-tabs value="login">
         <el-tab-pane label="Existing user" name="login">
-          <el-input v-model="email" type="email" placeholder="E-mail" :disabled="loading" required/>
-          <el-input v-model="password" type="password" placeholder="Password" :disabled="loading" required/>
+          <el-input v-model="email" type="email" placeholder="E-mail" v-on:keyup.enter.native="loginClick" :disabled="loading" required/>
+          <el-input v-model="password" type="password" placeholder="Password" v-on:keyup.enter.native="loginClick" :disabled="loading" required/>
           <el-button type="primary" :loading="loading" v-on:click="loginClick">Login</el-button>
         </el-tab-pane>
         <el-tab-pane label="New user" name="register">
-          <el-input v-model="email" type="email" placeholder="E-mail" :disabled="loading" required/>
-          <el-input v-model="password" type="password" placeholder="Password" :disabled="loading" required/>
-          <el-input v-model="password2" type="password" placeholder="Re-type password" :disabled="loading" required/>
-          <el-input v-model="nickname" placeholder="Nickname (Optional)" :disabled="loading"/>
+          <el-input v-model="email" type="email" placeholder="E-mail" v-on:keyup.enter.native="regClick" :disabled="loading" required/>
+          <el-input v-model="password" type="password" placeholder="Password" v-on:keyup.enter.native="regClick" :disabled="loading" required/>
+          <el-input v-model="password2" type="password" placeholder="Re-type password" v-on:keyup.enter.native="regClick" :disabled="loading" required/>
+          <el-input v-model="nickname" placeholder="Nickname (Optional)" v-on:keyup.enter.native="regClick" :disabled="loading"/>
           <el-button type="primary" :loading="loading" v-on:click="regClick">Register</el-button>
         </el-tab-pane>
       </el-tabs>
