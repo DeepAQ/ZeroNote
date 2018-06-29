@@ -82,7 +82,11 @@ export default {
     },
     doShare () {
       if (this.email == '') {
-        return
+        this.$message({
+          showClose: true,
+          type: 'success',
+          message: 'Please type E-mail'
+        })
       }
       api('share/add', {
         noteid: this.id,

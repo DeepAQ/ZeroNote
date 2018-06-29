@@ -27,7 +27,7 @@
           <el-button v-else class="button-new-tag" size="small" @click="showTagInput">+ New Tag</el-button>
         </el-popover>
         <el-button-group>
-          <el-button v-if="permission == 3" v-popover:poptags type="primary" icon="el-icon-menu">
+          <el-button v-popover:poptags type="primary" icon="el-icon-menu">
             Tags
           </el-button>
           <el-button type="primary" v-on:click="upDownVote">

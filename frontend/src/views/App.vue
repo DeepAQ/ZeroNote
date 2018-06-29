@@ -2,21 +2,24 @@
   <el-container id="app">
     <el-header height="50px">
       <div class="title">ZeroNote</div>
-      <div class="nav"></div>
+      <div class="nav">
+        <a href="/">Home</a>
+        <a href="/hub.html">Hub</a>
+      </div>
       <UserInfo/>
     </el-header>
     <el-container>
       <el-aside>
         <el-tabs :value="tab">
-          <el-tab-pane label="Notes" name="note">
+          <el-tab-pane label="My notes" name="note">
             <NoteList ref="notelist"/>
           </el-tab-pane>
-          <el-tab-pane label="Shared" name="share">
+          <el-tab-pane label="Shared to me" name="share">
             <ShareList/>
           </el-tab-pane>
-          <el-tab-pane label="Timeline" name="timeline">
+          <!-- <el-tab-pane label="Timeline" name="timeline">
             <Timeline/>
-          </el-tab-pane>
+          </el-tab-pane> -->
         </el-tabs>
       </el-aside>
       <el-main>
@@ -83,6 +86,12 @@ html, body {
     .nav {
       flex: 1;
       padding-left: 20px;
+
+      a {
+        color: whitesmoke;
+        text-decoration: none;
+        margin-right: 10px;
+      }
     }
 
     .el-dropdown {

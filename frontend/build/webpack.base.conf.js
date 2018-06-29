@@ -14,6 +14,7 @@ module.exports = {
     index: './src/main.js',
     auth: './src/page_auth.js',
     admin: './src/page_admin.js',
+    hub: './src/page_hub.js',
   },
   output: {
     path: config.build.assetsRoot,
