@@ -10,10 +10,10 @@
           <div class="btnicon"><i class="el-icon-arrow-down"></i></div>
           Follower
         </el-button>
-        <el-button type="primary" v-on:click="openLeaderboard">
+        <!-- <el-button type="primary" v-on:click="openLeaderboard">
           <div class="btnicon"><i class="el-icon-sort"></i></div>
           Trending
-        </el-button>
+        </el-button> -->
       </el-button-group>
     </div>
     <div class="timeline" v-loading="loading">

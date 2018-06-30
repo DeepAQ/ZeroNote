@@ -3,6 +3,7 @@
 namespace app\controller;
 
 use app\model\Upvote;
+use app\util\AuthToken;
 use app\util\Response;
 use BestLang\core\controller\BLController;
 use BestLang\core\model\BLSql;
@@ -60,6 +61,37 @@ class Hub extends BLController
         $notes = \app\model\Note::query()->fields(['id', 'title', 'updated', 'content'])
             ->where('public', 1)
             ->where('title', 'like', '%' . str_replace(' ', '%', $kw) . '%')
+            ->orderBy('updated desc')
+            ->get();
+
+        $results = [];
+        foreach ($notes as $note) {
+            $results[] = [
+                'id' => $note->id,
+                'title' => $note->title,
+                'updated' => $note->updated,
+                'preview' => mb_substr($note->content, 0, 300),
+                'upvotes' => Upvote::query()->where('noteid', $note->id)->count()
+            ];
+        }
+
+        return $this->json(Response::success($results));
+    }
+
+    public function fav() {
+        if (empty(AuthToken::getId())) {
+            return $this->json(Response::notLoggedIn());
+        }
+        $upvotes = Upvote::query()->where('userid', AuthToken::getId())->get();
+        $noteids = [];
+        $upvoteMap = [];
+        foreach ($upvotes as $upvote) {
+            $noteids[] = $upvote->noteid;
+            $upvoteMap[$upvote->noteid] = $upvote->upvotes;
+        }
+
+        $notes = \app\model\Note::query()->fields(['id', 'title', 'updated', 'content'])
+            ->whereRaw('id IN (' . join(',', $noteids) . ')')
             ->orderBy('updated desc')
             ->get();
 

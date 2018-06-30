@@ -4,8 +4,8 @@
       <div class="title">ZeroNote</div>
       <div class="hub">Hub</div>
       <div class="nav">
-        <a href="/">Home</a>
-        <router-link to="/">Hub</router-link>
+        <router-link to="/">Home</router-link>
+        <router-link to="/fav">Favorites</router-link>
       </div>
       <UserInfo/>
     </el-header>
