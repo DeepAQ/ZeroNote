@@ -55,7 +55,6 @@
       v-model="content"
       language="en"
       :editable="permission >= 2"
-      v-on:save="saveContent"
       v-on:imgAdd="uploadFile"/>
     <NoteShare ref="share"/>
   </div>
@@ -67,8 +66,9 @@ import api from '../utils/api'
 import _ from 'lodash'
 import DMP from 'diff-match-patch'
 
-let serverContent = ''
-let pollStarted = false
+let pollState = 0
+let pollInterval = 0
+let cBase = ''
 const dmp = new DMP()
 
 export default {
@@ -77,7 +77,6 @@ export default {
   data () {
     return {
       loading: false,
-      polling: false,
       saving: false,
       permission: 0,
       title: '',
@@ -91,18 +90,17 @@ export default {
   },
   mounted () {
     this.loadNote()
+    this.pollChanges()
   },
   beforeDestroy () {
-    pollStarted = false
+    pollState = 0
   },
   watch: {
     id () {
       this.loadNote()
     },
     content () {
-      if (!this.loading && !this.polling) {
-        this.saveDebounce()
-      }
+      pollState = 2
     },
     tags () {
       if (!this.loading && !this.saving) {
@@ -122,12 +120,13 @@ export default {
   },
   methods: {
     loadNote () {
+      pollState = 0
       this.loading = true
       api('note/single', {
         id: this.id
       }).then(data => {
-        serverContent = data.content ? data.content : ''
-        this.content = serverContent
+        cBase = data.content ? data.content : ''
+        this.content = cBase
         this.title = data.title ? data.title : ''
         this.permission = data.permission
         this.upvotes = data.upvotes
@@ -139,9 +138,8 @@ export default {
             this.tags = tags
           }
         } catch (e) {}
-        if (!pollStarted) {
-          pollStarted = true
-          setTimeout(this.pollChanges, 1000)
+        if (pollState == 0) {
+          pollState = 1
         }
       }).catch(reason => {
         this.$message({
@@ -169,28 +167,6 @@ export default {
         })
       }
     },
-    saveContent () {
-      if (!this.saving) {
-        const patch = dmp.patch_toText(dmp.patch_make(serverContent, this.content))
-        if (patch == '') return
-        this.saving = true
-        api('note/patch', {
-          id: this.id,
-          patch: patch
-        }).then(data => {
-          serverContent = data.content
-        }).catch(reason => {
-          this.$message({
-            showClose: true,
-            type: 'error',
-            message: `Autosave failed: ${reason}`
-          })
-        }).then(() => this.saving = false)
-      }
-    },
-    saveDebounce: _.debounce(function () {
-      this.saveContent()
-    }, 1000),
     uploadFile (filename, file) {
       let formData = new FormData();
       formData.append('filename', filename)
@@ -229,34 +205,68 @@ export default {
       this.$refs.share.showShare(this.id)
     },
     pollChanges () {
-      this.polling = true
-      api('note/poll', {
-        id: this.id,
-        content: serverContent
-      }).then(data => {
-        if (data.patch != '') {
-          const patches = dmp.patch_fromText(data.patch)
-          serverContent = dmp.patch_apply(patches, serverContent)[0]
-          const newContent = dmp.patch_apply(patches, this.content)[0]
-          const textArea = this.$el.querySelector('.auto-textarea-input')
-          let cursorPos = textArea.selectionStart
-          if (this.content.substr(0, cursorPos) != newContent.substr(0, cursorPos)) {
-            cursorPos += newContent.length - this.content.length
-          }
-          // textArea.disabled = true
-          this.content = newContent
-          setTimeout(() => {
-            // textArea.disabled = false
-            // textArea.focus()
-            textArea.selectionStart = textArea.selectionEnd = cursorPos
-          }, 0)
-        }
-      }).catch(reason => {}).then(() => {
-        if (pollStarted) {
+      console.log(`pollState: ${pollState}`)
+      switch (pollState) {
+        case 0:
           setTimeout(this.pollChanges, 1000)
-        }
-        this.polling = false
-      })
+          break
+        case 1:
+          api('note/poll', {
+            id: this.id,
+            content: cBase
+          }).then(data => {
+            if (data.patch != '') {
+              const patches = dmp.patch_fromText(data.patch)
+              cBase = dmp.patch_apply(patches, cBase)[0]
+              const newContent = dmp.patch_apply(patches, this.content)[0]
+              const textArea = this.$el.querySelector('.auto-textarea-input')
+              let cursorStart = textArea.selectionStart
+              let cursorEnd = textArea.selectionEnd
+              if (this.content.substr(0, cursorStart) != newContent.substr(0, cursorStart)) {
+                cursorStart += newContent.length - this.content.length
+              }
+              if (this.content.substr(0, cursorEnd) != newContent.substr(0, cursorEnd)) {
+                cursorEnd += newContent.length - this.content.length
+              }
+              // textArea.disabled = true
+              this.content = newContent
+              this.$nextTick(() => {
+                // textArea.disabled = false
+                // textArea.focus()
+                textArea.selectionStart = cursorPos
+                textArea.selectionEnd = cursorEnd
+              })
+            }
+          }).catch(reason => {}).then(() => {
+            setTimeout(this.pollChanges, 1000)
+          })
+          break
+        case 2:
+          const cSnapshot = this.content
+          const patch = dmp.patch_toText(dmp.patch_make(cBase, cSnapshot))
+          if (patch == '') {
+            pollState = 1
+            this.pollChanges()
+            break
+          }
+          this.saving = true
+          api('note/patch', {
+            id: this.id,
+            patch: patch
+          }).then(data => {
+            cBase = cSnapshot
+          }).catch(reason => {
+            this.$message({
+              showClose: true,
+              type: 'error',
+              message: `Autosave failed: ${reason}`
+            })
+          }).then(() => {
+            this.saving = false
+            setTimeout(this.pollChanges, 1000)
+          })
+          break
+      }
     },
     upDownVote () {
       api('note/updownvote', {
