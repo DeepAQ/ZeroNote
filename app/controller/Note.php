@@ -2,8 +2,10 @@
 
 namespace app\controller;
 
+use app\model\Cursor;
 use app\model\Sharing;
 use app\model\Upvote;
+use app\model\User;
 use app\util\AuthToken;
 use app\util\Response;
 use BestLang\core\controller\BLController;
@@ -52,6 +54,25 @@ class Note extends BLController
         return 3;
     }
 
+    private function updateCursor($note, $pos)
+    {
+        if (empty($note)) {
+            return false;
+        }
+        $cursor = Cursor::query()->where('noteid', $note->id)->where('userid', AuthToken::getId())->get();
+        if (empty($cursor)) {
+            $cursor = new Cursor([
+                'noteid' => $note->id,
+                'userid' => AuthToken::getId()
+            ]);
+        } else {
+            $cursor = $cursor[0];
+        }
+        $cursor->pos = $pos;
+        $cursor->updated = time();
+        return $cursor->save();
+    }
+
     public function single()
     {
         if (empty(AuthToken::getId())) {
@@ -77,18 +98,34 @@ class Note extends BLController
         if (empty(AuthToken::getId())) {
             return $this->json(Response::notLoggedIn());
         }
-        $lastUpdate = BLRequest::bodyJson('lastUpdate', 0);
         $note = \app\model\Note::get(BLRequest::bodyJson('id'));
         $permission = $this->checkPermission($note);
         if ($permission > 0) {
-            if ($note->updated > $lastUpdate) {
-                $dmp = new DiffMatchPatch();
-                return $this->json(Response::success([
-                    'patch' => $dmp->patch_toText($dmp->patch_make(BLRequest::bodyJson('content', ''), $note->content))
-                ]));
-            } else {
-                return $this->json(Response::success(false));
+            if ($permission >= 2) {
+                $curPos = BLRequest::bodyJson('cursor');
+                if (!is_null($curPos)) {
+                    $this->updateCursor($note, $curPos);
+                }
             }
+            $cursors = Cursor::query()
+                ->fields(['userid', 'pos'])
+                ->where('noteid', $note->id)
+                ->where('userid', '<>', AuthToken::getId())
+                ->where('updated', '>', time() - 10)
+                ->orderBy('pos')
+                ->get();
+            $cursorsResult = [];
+            foreach ($cursors as $cursor) {
+                $cursorsResult[] = [
+                    'email' => User::get($cursor->userid)->email,
+                    'pos' => $cursor->pos
+                ];
+            }
+            $dmp = new DiffMatchPatch();
+            return $this->json(Response::success([
+                'patch' => $dmp->patch_toText($dmp->patch_make(BLRequest::bodyJson('content', ''), $note->content)),
+                'cursors' => $cursorsResult
+            ]));
         } else {
             return $this->json(Response::error('Note does not exist'));
         }
@@ -155,11 +192,15 @@ class Note extends BLController
         if ($this->checkPermission($note) < 2) {
             return $this->json(Response::error('No permission'));
         }
+        $curPos = BLRequest::bodyJson('cursor');
+        if (!is_null($curPos)) {
+            $this->updateCursor($note, $curPos);
+        }
         $dmp = new DiffMatchPatch();
         $note->content = $dmp->patch_apply($dmp->patch_fromText(BLRequest::bodyJson('patch')), $note->content)[0];
         $note->updated = time();
         if ($note->save() > 0) {
-            return $this->json(Response::success(['content' => $note->content]));
+            return $this->json(Response::success(null));
         } else {
             return Response::unknownError();
         }

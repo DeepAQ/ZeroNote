@@ -66,10 +66,12 @@ import api from '../utils/api'
 import _ from 'lodash'
 import DMP from 'diff-match-patch'
 
+const dmp = new DMP()
+
 let pollState = 0
 let pollInterval = 0
 let cBase = ''
-const dmp = new DMP()
+let cCursors = []
 
 export default {
   components: { NoteShare },
@@ -101,6 +103,7 @@ export default {
     },
     content () {
       pollState = 2
+      this.renderCursor()
     },
     tags () {
       if (!this.loading && !this.saving) {
@@ -206,6 +209,7 @@ export default {
     },
     pollChanges () {
       console.log(`pollState: ${pollState}`)
+      const textArea = this.$el.querySelector('.auto-textarea-input')
       switch (pollState) {
         case 0:
           setTimeout(this.pollChanges, 1000)
@@ -213,13 +217,14 @@ export default {
         case 1:
           api('note/poll', {
             id: this.id,
-            content: cBase
+            content: cBase,
+            cursor: textArea.selectionStart
           }).then(data => {
+            cCursors = data.cursors
             if (data.patch != '') {
               const patches = dmp.patch_fromText(data.patch)
               cBase = dmp.patch_apply(patches, cBase)[0]
               const newContent = dmp.patch_apply(patches, this.content)[0]
-              const textArea = this.$el.querySelector('.auto-textarea-input')
               let cursorStart = textArea.selectionStart
               let cursorEnd = textArea.selectionEnd
               if (this.content.substr(0, cursorStart) != newContent.substr(0, cursorStart)) {
@@ -236,6 +241,8 @@ export default {
                 textArea.selectionStart = cursorPos
                 textArea.selectionEnd = cursorEnd
               })
+            } else {
+              this.renderCursor()
             }
           }).catch(reason => {}).then(() => {
             setTimeout(this.pollChanges, 1000)
@@ -252,7 +259,8 @@ export default {
           this.saving = true
           api('note/patch', {
             id: this.id,
-            patch: patch
+            patch: patch,
+            cursor: textArea.selectionStart
           }).then(data => {
             cBase = cSnapshot
           }).catch(reason => {
@@ -267,6 +275,22 @@ export default {
           })
           break
       }
+    },
+    renderCursor () {
+      let modContent = this.content
+      let addedLen = 0
+      if (cCursors.length > 0) {
+        for (const cursor of cCursors) {
+          const addHtml = `<span class="hl_cursor"></span><span class="hl_relative"><span class="hl_cursor_email">${cursor.email}</span></span>`
+          const addPos = Number(cursor.pos) + addedLen
+          modContent = modContent.substr(0, addPos) + addHtml + modContent.substr(addPos)
+          addedLen += addHtml.length
+        }
+      }
+      const editor = this.$refs.editor
+      editor.$render(modContent, render => {
+        editor.d_render = render
+      })
     },
     upDownVote () {
       api('note/updownvote', {
@@ -326,5 +350,31 @@ export default {
   .v-note-wrapper {
     flex: 1;
   }
+}
+</style>
+
+<style lang="less">
+.hl_cursor {
+  border: 1.5px solid #0099cc;
+}
+
+.hl_relative {
+  position: relative;
+}
+
+.hl_cursor_email {
+  position: absolute;
+  top: 25px;
+  left: -3px;
+
+  background-color: #0099cc;
+  color: whitesmoke;
+  transition: 0.5s opacity;
+  font-size: 12px;
+  padding: 0 5px;
+}
+
+.hl_cursor_email:hover {
+  opacity: 0.2;
 }
 </style>

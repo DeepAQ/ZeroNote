@@ -15,7 +15,7 @@
     "element-ui": "^2.0.7",
     "lodash": "^4.17.4",
     "markdown-it": "^8.4.1",
-    "mavon-editor": "^2.4.9",
+    "mavon-editor": "^2.6.13",
     "vue": "^2.5.2",
     "vue-particles": "^1.0.9",
     "vue-router": "^3.0.1"
