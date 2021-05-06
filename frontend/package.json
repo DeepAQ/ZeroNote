@@ -13,7 +13,7 @@
     "axios": "^0.17.1",
     "diff-match-patch": "^1.0.0",
     "element-ui": "^2.0.7",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.21",
     "markdown-it": "^8.4.1",
     "mavon-editor": "^2.6.13",
     "vue": "^2.5.2",
